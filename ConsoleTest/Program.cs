@@ -42,6 +42,5 @@ namespace ConsoleTest
         public int PageId { get; set; }
         public string PageName { get; set; }
         public string PageLink { get; set; }
-
     }
 }
