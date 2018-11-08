@@ -29,3 +29,6 @@ BulkInsert, BulkDelete, BulkUpdate for sqlserver
         //delete all
         db.BulkDelete<Page>();
     }
+
+
+- [demo](https://github.com/colindcli/ExecuteSqlBulk/blob/master/ConsoleTest/Program.cs)
