@@ -1,0 +1,5 @@
+.vs/*
+ConsoleTest/bin/*
+ConsoleTest/obj/*
+ExecuteSqlBulk/bin/*
+ExecuteSqlBulk/obj/*
