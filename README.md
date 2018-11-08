@@ -1,6 +1,10 @@
 # ExecuteSqlBulk
 BulkInsert, BulkDelete, BulkUpdate for sqlserver
 
+> Nuget Install
+
+- [https://www.nuget.org/packages/ExecuteSqlBulk/](https://www.nuget.org/packages/ExecuteSqlBulk/)
+
 > Examples
 
     public class Page
