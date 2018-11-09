@@ -1,6 +1,6 @@
-# ExecuteSqlBulk - Bulk Insert/Update/Delete for Sqlserver
+# ExecuteSqlBulk
 
-SqlServer 批量添加、批量修改、批量删除
+Bulk Insert/Update/Delete for Sqlserver
 
 ## NuGet Gallery
 
