@@ -32,7 +32,7 @@ namespace ConsoleTest
                 //db.BulkDelete<Page>();
             }
             sw.Stop();
-            Console.WriteLine($"Excute Time: {sw.ElapsedMilliseconds} ms, Row: {row}");
+            Console.WriteLine($"Execute time: {sw.ElapsedMilliseconds} ms, Row: {row}");
             Console.ReadKey();
         }
     }
