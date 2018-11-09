@@ -31,4 +31,4 @@ BulkInsert, BulkDelete, BulkUpdate for sqlserver
     }
 
 
-- [demo](https://github.com/colindcli/ExecuteSqlBulk/blob/master/ConsoleTest/Program.cs)
+- [demo](https://github.com/colindcli/ExecuteSqlBulk/blob/master/ConsoleTest/Program.cs#L27)
