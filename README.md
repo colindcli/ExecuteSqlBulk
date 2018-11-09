@@ -2,7 +2,6 @@
 
 SqlServer 批量添加、批量修改、批量删除
 
-
 ## NuGet Gallery
 
 - [NuGet Gallery: ExecuteSqlBulk](https://www.nuget.org/packages/ExecuteSqlBulk/)
@@ -38,6 +37,16 @@ using (var db = new SqlConnection("Data Source=.;uid=;pwd=;database=;"))
 ```
 
 For more information, would you see [Example](https://github.com/colindcli/ExecuteSqlBulk/blob/master/ConsoleTest/Program.cs#L27)?
+
+
+## Performance
+
+|   Bulk       |  20000 records |  200000 records |  1000000 records |
+|------------- |--------:       |------------:    |--------:         |
+|   Insert     |    217 ms      |  1176 ms        |   6529 ms        |
+|   Update     |    251 ms      |  1586 ms        |   6595 ms        |
+|   Delete     |    163 ms      |  1277 ms        |   6956 ms        |
+|   Delete All |    9 ms        |  9 ms           |   13 ms          |
 
 ## License
 
