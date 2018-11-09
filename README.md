@@ -2,7 +2,6 @@
 
 SqlServer 批量添加、批量修改、批量删除
 
-----------
 
 ## NuGet Gallery
 
