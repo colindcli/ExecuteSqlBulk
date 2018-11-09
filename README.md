@@ -1,4 +1,4 @@
-# ExecuteSqlBulk - A .NET Bulk Insert/Update/Delete for Sqlserver
+# ExecuteSqlBulk - Bulk Insert/Update/Delete for Sqlserver
 
 SqlServer 批量添加、批量修改、批量删除
 
