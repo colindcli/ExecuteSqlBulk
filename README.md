@@ -7,9 +7,9 @@ SqlServer 批量添加、批量修改、批量删除
 - [NuGet Gallery: ExecuteSqlBulk](https://www.nuget.org/packages/ExecuteSqlBulk/)
 
 
-## How to use LiteDB
+## Usage
 
-A quick example for storing and searching documents:
+A quick example:
 
 ```C#
 public class Page
