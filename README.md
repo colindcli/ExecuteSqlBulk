@@ -20,7 +20,7 @@ public class Page
     public string PageLink { get; set; }
 }
 
-using (var db = new SqlConnection("Data Source=.;uid=;pwd=;database=;"))
+using (var db = new SqlConnection("Data Source=.;Initial Catalog=SqlBulkTestDb;Integrated Security=True"))
 {
     //insert
     db.BulkInsert(list);
