@@ -198,6 +198,34 @@ namespace ExecuteSqlBulk.Test
             }
         }
 
+        [TestMethod]
+        public void TestMethod10()
+        {
+            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
+            {
+                var list = new List<Page>();
+
+                var item1 = db.GetListByBulk<Page>(null).OrderByDescending(p => p.PageLink).ThenBy(p => p.PageName).FirstOrDefault();
+                var item2 = db.GetListByBulk<Page>(null).OrderByDescending(p => p.PageLink).ThenByDescending(p => p.PageName).FirstOrDefault();
+                var item3 = db.GetListByBulk<Page>(null).OrderBy(p => p.PageLink).OrderBy(p => p.PageName).FirstOrDefault();
+                var item4 = db.GetListByBulk<Page>(null).OrderBy(p => p.PageLink).ThenByDescending(p => p.PageName).FirstOrDefault();
+
+                list.Add(item1);
+                list.Add(item2);
+                list.Add(item3);
+                list.Add(item4);
+
+                var json = JsonConvert.SerializeObject(list);
+
+                //
+                var txt = File.ReadAllText($"{FilePath}file_8_result.json");
+                var rows = JsonConvert.DeserializeObject<List<Page>>(txt);
+
+                var b = new CompareLogic().Compare(list, rows);
+                Assert.IsTrue(b.AreEqual);
+            }
+        }
+
         private static readonly int Number = 20;
 
         private static void Excute()

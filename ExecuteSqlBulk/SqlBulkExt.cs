@@ -116,6 +116,15 @@ namespace ExecuteSqlBulk
 
         #region GetListByBulk
 
+        /// <summary>
+        /// 获取数据
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="db"></param>
+        /// <param name="whereConditions"></param>
+        /// <param name="transaction"></param>
+        /// <param name="commandTimeout"></param>
+        /// <returns></returns>
         public static SimpleSelectModel<T> GetListByBulk<T>(this SqlConnection db, object whereConditions, SqlTransaction transaction = null, int? commandTimeout = null)
         {
             var obj = SimpleSelectHelper.GetListByBulk<T>(whereConditions);
@@ -126,12 +135,24 @@ namespace ExecuteSqlBulk
             return obj;
         }
 
+        /// <summary>
+        /// 取列表
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="obj"></param>
+        /// <returns></returns>
         public static List<T> ToList<T>(this SimpleSelectModel<T> obj)
         {
             var sql = $"SELECT{(obj.Top >= 0 ? $" TOP ({obj.Top})" : "")} * FROM {obj.TableName} {obj.Where} {obj.OrderBy};";
             return obj.Db.Query<T>(sql, obj.WhereConditions, transaction: obj.Transaction, commandTimeout: obj.CommandTimeout).ToList();
         }
 
+        /// <summary>
+        /// 取第一条
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="obj"></param>
+        /// <returns></returns>
         public static T FirstOrDefault<T>(this SimpleSelectModel<T> obj)
         {
             obj.Top = 1;
@@ -139,28 +160,69 @@ namespace ExecuteSqlBulk
             return obj.Db.Query<T>(sql, obj.WhereConditions, transaction: obj.Transaction, commandTimeout: obj.CommandTimeout).FirstOrDefault();
         }
 
+        /// <summary>
+        /// 获取几条
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="obj"></param>
+        /// <param name="number"></param>
+        /// <returns></returns>
         public static SimpleSelectModel<T> Take<T>(this SimpleSelectModel<T> obj, int number)
         {
             obj.Top = number;
             return obj;
         }
 
+        /// <summary>
+        /// 顺序
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="obj"></param>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
         public static SimpleSelectModel<T> OrderBy<T, TResult>(this SimpleSelectModel<T> obj, Expression<Func<T, TResult>> predicate)
         {
             obj.OrderBy = $"ORDER BY {SimpleSelectHelper.GetPropertyName(predicate)} ASC";
             return obj;
         }
+
+        /// <summary>
+        /// 顺序
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="obj"></param>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
         public static SimpleSelectModel<T> ThenBy<T, TResult>(this SimpleSelectModel<T> obj, Expression<Func<T, TResult>> predicate)
         {
             obj.OrderBy = $"{obj.OrderBy},{SimpleSelectHelper.GetPropertyName(predicate)} ASC";
             return obj;
         }
 
+        /// <summary>
+        /// 倒序
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="obj"></param>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
         public static SimpleSelectModel<T> OrderByDescending<T, TResult>(this SimpleSelectModel<T> obj, Expression<Func<T, TResult>> predicate)
         {
             obj.OrderBy = $"ORDER BY {SimpleSelectHelper.GetPropertyName(predicate)} DESC";
             return obj;
         }
+
+        /// <summary>
+        /// 倒序
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TResult"></typeparam>
+        /// <param name="obj"></param>
+        /// <param name="predicate"></param>
+        /// <returns></returns>
         public static SimpleSelectModel<T> ThenByDescending<T, TResult>(this SimpleSelectModel<T> obj, Expression<Func<T, TResult>> predicate)
         {
             obj.OrderBy = $"{obj.OrderBy},{SimpleSelectHelper.GetPropertyName(predicate)} DESC";
