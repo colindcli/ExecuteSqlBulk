@@ -36,7 +36,7 @@ using (var db = new SqlConnection("Data Source=.;uid=;pwd=;database=;"))
 }
 ```
 
-For more information, would you see [Example](https://github.com/colindcli/ExecuteSqlBulk/blob/master/ConsoleTest/Program.cs#L27)?
+For more information, would you see [Example](https://github.com/colindcli/ExecuteSqlBulk/blob/master/ExecuteSqlBulk.Test/ExecuteSqlBulkTest.cs#L248)?
 
 
 ## Performance
