@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.28010.2019
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExecuteSqlBulk", "ExecuteSqlBulk\ExecuteSqlBulk.csproj", "{7B01FCBF-0BE2-462A-9A23-19913FDD4379}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleTest", "ConsoleTest\ConsoleTest.csproj", "{5DFC04D8-42FC-49C1-9BC4-0DDF5ABF3083}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExecuteSqlBulk.Test", "ExecuteSqlBulk.Test\ExecuteSqlBulk.Test.csproj", "{BF8583CA-0A89-4424-90C8-2826066F6966}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{7B01FCBF-0BE2-462A-9A23-19913FDD4379}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7B01FCBF-0BE2-462A-9A23-19913FDD4379}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7B01FCBF-0BE2-462A-9A23-19913FDD4379}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5DFC04D8-42FC-49C1-9BC4-0DDF5ABF3083}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5DFC04D8-42FC-49C1-9BC4-0DDF5ABF3083}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5DFC04D8-42FC-49C1-9BC4-0DDF5ABF3083}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5DFC04D8-42FC-49C1-9BC4-0DDF5ABF3083}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF8583CA-0A89-4424-90C8-2826066F6966}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF8583CA-0A89-4424-90C8-2826066F6966}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF8583CA-0A89-4424-90C8-2826066F6966}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF8583CA-0A89-4424-90C8-2826066F6966}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

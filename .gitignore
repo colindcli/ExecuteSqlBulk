@@ -1,5 +1,7 @@
 .vs/*
-ConsoleTest/bin/*
-ConsoleTest/obj/*
+ExecuteSqlBulk.Test/bin/*
+ExecuteSqlBulk.Test/obj/*
 ExecuteSqlBulk/bin/*
 ExecuteSqlBulk/obj/*
+packages/*
+TestResults/*
