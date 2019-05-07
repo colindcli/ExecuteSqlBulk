@@ -1,8 +1,12 @@
 ﻿using Dapper;
+using KellermanSoftware.CompareNetObjects;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 
 namespace ExecuteSqlBulk.Test
@@ -10,6 +14,8 @@ namespace ExecuteSqlBulk.Test
     [TestClass]
     public class ExecuteSqlBulkTest
     {
+        private static readonly string FilePath = Path.GetFullPath($"{AppDomain.CurrentDomain.BaseDirectory}/../../App_Data/");
+
         public ExecuteSqlBulkTest()
         {
             Setup();
@@ -22,6 +28,173 @@ namespace ExecuteSqlBulk.Test
             using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
             {
                 Assert.IsTrue(db.Query<int>(@"SELECT COUNT(1) FROM dbo.Page p;").FirstOrDefault() == Number);
+            }
+        }
+
+        [TestMethod]
+        public void TestMethod2()
+        {
+            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
+            {
+                var list = db.GetListByBulk<Page>(new
+                {
+                    PageId = new List<int>()
+                    {
+                        1,
+                        2,
+                        3,
+                        4,
+                        5
+                    }
+                }).ToList();
+
+                var json = JsonConvert.SerializeObject(list);
+
+                //
+                var txt = File.ReadAllText($"{FilePath}file_1_result.json");
+                var rows = JsonConvert.DeserializeObject<List<Page>>(txt);
+
+                var b = new CompareLogic().Compare(list, rows);
+                Assert.IsTrue(b.AreEqual);
+            }
+        }
+
+        [TestMethod]
+        public void TestMethod3()
+        {
+            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
+            {
+                var list = db.GetListByBulk<Page>(new
+                {
+                    PageId = new List<int>()
+                    {
+                        1,
+                        2,
+                        3,
+                        4,
+                        5
+                    }
+                }).Take(2).ToList();
+
+                var json = JsonConvert.SerializeObject(list);
+
+                //
+                var txt = File.ReadAllText($"{FilePath}file_2_result.json");
+                var rows = JsonConvert.DeserializeObject<List<Page>>(txt);
+
+                var b = new CompareLogic().Compare(list, rows);
+                Assert.IsTrue(b.AreEqual);
+            }
+        }
+
+        [TestMethod]
+        public void TestMethod4()
+        {
+            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
+            {
+                var list = db.GetListByBulk<Page>(new
+                {
+
+                }).ToList();
+
+                var json = JsonConvert.SerializeObject(list);
+
+                //
+                var txt = File.ReadAllText($"{FilePath}file_3_result.json");
+                var rows = JsonConvert.DeserializeObject<List<Page>>(txt);
+
+                var b = new CompareLogic().Compare(list, rows);
+                Assert.IsTrue(b.AreEqual);
+            }
+        }
+
+        [TestMethod]
+        public void TestMethod5()
+        {
+            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
+            {
+                var list = db.GetListByBulk<Page>(null).ToList();
+
+                var json = JsonConvert.SerializeObject(list);
+
+                //
+                var txt = File.ReadAllText($"{FilePath}file_3_result.json");
+                var rows = JsonConvert.DeserializeObject<List<Page>>(txt);
+
+                var b = new CompareLogic().Compare(list, rows);
+                Assert.IsTrue(b.AreEqual);
+            }
+        }
+
+        [TestMethod]
+        public void TestMethod6()
+        {
+            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
+            {
+                var list = db.GetListByBulk<Page>(null).OrderBy(p => p.PageLink).ThenBy(p => p.PageName).ToList();
+
+                var json = JsonConvert.SerializeObject(list);
+
+                //
+                var txt = File.ReadAllText($"{FilePath}file_4_result.json");
+                var rows = JsonConvert.DeserializeObject<List<Page>>(txt);
+
+                var b = new CompareLogic().Compare(list, rows);
+                Assert.IsTrue(b.AreEqual);
+            }
+        }
+
+        [TestMethod]
+        public void TestMethod7()
+        {
+            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
+            {
+                var list = db.GetListByBulk<Page>(null).OrderBy(p => p.PageLink).ThenByDescending(p => p.PageName).ToList();
+
+                var json = JsonConvert.SerializeObject(list);
+
+                //
+                var txt = File.ReadAllText($"{FilePath}file_5_result.json");
+                var rows = JsonConvert.DeserializeObject<List<Page>>(txt);
+
+                var b = new CompareLogic().Compare(list, rows);
+                Assert.IsTrue(b.AreEqual);
+            }
+        }
+
+        [TestMethod]
+        public void TestMethod8()
+        {
+            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
+            {
+                var list = db.GetListByBulk<Page>(null).OrderByDescending(p => p.PageLink).ThenBy(p => p.PageName).ToList();
+
+                var json = JsonConvert.SerializeObject(list);
+
+                //
+                var txt = File.ReadAllText($"{FilePath}file_6_result.json");
+                var rows = JsonConvert.DeserializeObject<List<Page>>(txt);
+
+                var b = new CompareLogic().Compare(list, rows);
+                Assert.IsTrue(b.AreEqual);
+            }
+        }
+
+        [TestMethod]
+        public void TestMethod9()
+        {
+            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
+            {
+                var list = db.GetListByBulk<Page>(null).OrderByDescending(p => p.PageLink).ThenByDescending(p => p.PageName).ToList();
+
+                var json = JsonConvert.SerializeObject(list);
+
+                //
+                var txt = File.ReadAllText($"{FilePath}file_7_result.json");
+                var rows = JsonConvert.DeserializeObject<List<Page>>(txt);
+
+                var b = new CompareLogic().Compare(list, rows);
+                Assert.IsTrue(b.AreEqual);
             }
         }
 

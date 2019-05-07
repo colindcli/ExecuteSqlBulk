@@ -1,11 +1,17 @@
-﻿using System;
+﻿using Dapper;
+using ExecuteSqlBulk.SimpleSelect;
+using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Linq;
+using System.Linq.Expressions;
 
 namespace ExecuteSqlBulk
 {
     public static class SqlBulkExt
     {
+        #region 批量更新
+
         /// <summary>
         /// 批量插入数据
         /// </summary>
@@ -105,5 +111,62 @@ namespace ExecuteSqlBulk
                 sbc.BulkDelete(tableName);
             }
         }
+
+        #endregion
+
+        #region GetListByBulk
+
+        public static SimpleSelectModel<T> GetListByBulk<T>(this SqlConnection db, object whereConditions, SqlTransaction transaction = null, int? commandTimeout = null)
+        {
+            var obj = SimpleSelectHelper.GetListByBulk<T>(whereConditions);
+            obj.Db = db;
+            obj.Transaction = transaction;
+            obj.CommandTimeout = commandTimeout;
+            obj.WhereConditions = whereConditions;
+            return obj;
+        }
+
+        public static List<T> ToList<T>(this SimpleSelectModel<T> obj)
+        {
+            var sql = $"SELECT{(obj.Top >= 0 ? $" TOP ({obj.Top})" : "")} * FROM {obj.TableName} {obj.Where} {obj.OrderBy};";
+            return obj.Db.Query<T>(sql, obj.WhereConditions, transaction: obj.Transaction, commandTimeout: obj.CommandTimeout).ToList();
+        }
+
+        public static T FirstOrDefault<T>(this SimpleSelectModel<T> obj)
+        {
+            obj.Top = 1;
+            var sql = $"SELECT{(obj.Top >= 0 ? $" TOP ({obj.Top})" : "")} * FROM {obj.TableName} {obj.Where} {obj.OrderBy};";
+            return obj.Db.Query<T>(sql, obj.WhereConditions, transaction: obj.Transaction, commandTimeout: obj.CommandTimeout).FirstOrDefault();
+        }
+
+        public static SimpleSelectModel<T> Take<T>(this SimpleSelectModel<T> obj, int number)
+        {
+            obj.Top = number;
+            return obj;
+        }
+
+        public static SimpleSelectModel<T> OrderBy<T, TResult>(this SimpleSelectModel<T> obj, Expression<Func<T, TResult>> predicate)
+        {
+            obj.OrderBy = $"ORDER BY {SimpleSelectHelper.GetPropertyName(predicate)} ASC";
+            return obj;
+        }
+        public static SimpleSelectModel<T> ThenBy<T, TResult>(this SimpleSelectModel<T> obj, Expression<Func<T, TResult>> predicate)
+        {
+            obj.OrderBy = $"{obj.OrderBy},{SimpleSelectHelper.GetPropertyName(predicate)} ASC";
+            return obj;
+        }
+
+        public static SimpleSelectModel<T> OrderByDescending<T, TResult>(this SimpleSelectModel<T> obj, Expression<Func<T, TResult>> predicate)
+        {
+            obj.OrderBy = $"ORDER BY {SimpleSelectHelper.GetPropertyName(predicate)} DESC";
+            return obj;
+        }
+        public static SimpleSelectModel<T> ThenByDescending<T, TResult>(this SimpleSelectModel<T> obj, Expression<Func<T, TResult>> predicate)
+        {
+            obj.OrderBy = $"{obj.OrderBy},{SimpleSelectHelper.GetPropertyName(predicate)} DESC";
+            return obj;
+        }
+
+        #endregion
     }
 }
