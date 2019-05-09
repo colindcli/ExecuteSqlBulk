@@ -197,6 +197,10 @@ namespace ExecuteSqlBulk
         /// <returns></returns>
         public static SimpleSelectModel<T> ThenBy<T, TResult>(this SimpleSelectModel<T> obj, Expression<Func<T, TResult>> predicate)
         {
+            if (string.IsNullOrWhiteSpace(obj.OrderBy))
+            {
+                throw new Exception("请先调用OrderBy");
+            }
             obj.OrderBy = $"{obj.OrderBy},{SimpleSelectHelper.GetPropertyName(predicate)} ASC";
             return obj;
         }
@@ -225,6 +229,10 @@ namespace ExecuteSqlBulk
         /// <returns></returns>
         public static SimpleSelectModel<T> ThenByDescending<T, TResult>(this SimpleSelectModel<T> obj, Expression<Func<T, TResult>> predicate)
         {
+            if (string.IsNullOrWhiteSpace(obj.OrderBy))
+            {
+                throw new Exception("请先调用OrderBy");
+            }
             obj.OrderBy = $"{obj.OrderBy},{SimpleSelectHelper.GetPropertyName(predicate)} DESC";
             return obj;
         }
