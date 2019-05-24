@@ -4,12 +4,12 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
 
-namespace ExecuteSqlBulk.SimpleSelect
+namespace ExecuteSqlBulk
 {
-    public class SimpleSelectHelper
+    public class QueryableBuilder
     {
-        private static Dictionary<Type, string> TypeNames { get; set; } = new Dictionary<Type, string>();
-        private static Dictionary<object, string> ObjectWhere { get; set; } = new Dictionary<object, string>();
+        private static Dictionary<Type, string> TypeNames { get; } = new Dictionary<Type, string>();
+        private static Dictionary<object, string> ObjectWhere { get; } = new Dictionary<object, string>();
 
         private static string GetName<T>()
         {
@@ -38,12 +38,12 @@ namespace ExecuteSqlBulk.SimpleSelect
         /// <typeparam name="T"></typeparam>
         /// <param name="whereConditions"></param>
         /// <returns></returns>
-        protected internal static SimpleSelectModel<T> GetListByBulk<T>(object whereConditions)
+        protected internal static IQuery<T> GetListByBulk<T>(object whereConditions)
         {
             var name = GetName<T>();
             var where = GetWhere(whereConditions);
 
-            return new SimpleSelectModel<T>()
+            return new Queryable<T>()
             {
                 TableName = $"[{name}]",
                 Where = where
@@ -64,8 +64,8 @@ namespace ExecuteSqlBulk.SimpleSelect
             }
 
             var sb = new StringBuilder();
-            var fields = whereConditions?.GetType().GetProperties();
-            if (fields?.Length > 0)
+            var fields = whereConditions.GetType().GetProperties();
+            if (fields.Length > 0)
             {
                 sb.Append(" WHERE");
                 var addAnd = false;

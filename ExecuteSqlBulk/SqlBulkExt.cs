@@ -1,5 +1,4 @@
 ﻿using Dapper;
-using ExecuteSqlBulk.SimpleSelect;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
@@ -125,9 +124,9 @@ namespace ExecuteSqlBulk
         /// <param name="transaction"></param>
         /// <param name="commandTimeout"></param>
         /// <returns></returns>
-        public static SimpleSelectModel<T> GetListByBulk<T>(this SqlConnection db, object whereConditions, SqlTransaction transaction = null, int? commandTimeout = null)
+        public static IQuery<T> GetListByBulk<T>(this SqlConnection db, object whereConditions, SqlTransaction transaction = null, int? commandTimeout = null)
         {
-            var obj = SimpleSelectHelper.GetListByBulk<T>(whereConditions);
+            var obj = QueryableBuilder.GetListByBulk<T>(whereConditions);
             obj.Db = db;
             obj.Transaction = transaction;
             obj.CommandTimeout = commandTimeout;
@@ -141,7 +140,7 @@ namespace ExecuteSqlBulk
         /// <typeparam name="T"></typeparam>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public static List<T> ToList<T>(this SimpleSelectModel<T> obj)
+        public static List<T> ToList<T>(this IQuery<T> obj)
         {
             var sql = $"SELECT{(obj.Top >= 0 ? $" TOP ({obj.Top})" : "")} * FROM {obj.TableName} {obj.Where} {obj.OrderBy};";
             return obj.Db.Query<T>(sql, obj.WhereConditions, transaction: obj.Transaction, commandTimeout: obj.CommandTimeout).ToList();
@@ -153,7 +152,7 @@ namespace ExecuteSqlBulk
         /// <typeparam name="T"></typeparam>
         /// <param name="obj"></param>
         /// <returns></returns>
-        public static T FirstOrDefault<T>(this SimpleSelectModel<T> obj)
+        public static T FirstOrDefault<T>(this IQuery<T> obj)
         {
             obj.Top = 1;
             var sql = $"SELECT{(obj.Top >= 0 ? $" TOP ({obj.Top})" : "")} * FROM {obj.TableName} {obj.Where} {obj.OrderBy};";
@@ -167,7 +166,7 @@ namespace ExecuteSqlBulk
         /// <param name="obj"></param>
         /// <param name="number"></param>
         /// <returns></returns>
-        public static SimpleSelectModel<T> Take<T>(this SimpleSelectModel<T> obj, int number)
+        public static IQuery<T> Take<T>(this IQuery<T> obj, int number)
         {
             obj.Top = number;
             return obj;
@@ -181,9 +180,9 @@ namespace ExecuteSqlBulk
         /// <param name="obj"></param>
         /// <param name="predicate"></param>
         /// <returns></returns>
-        public static SimpleSelectModel<T> OrderBy<T, TResult>(this SimpleSelectModel<T> obj, Expression<Func<T, TResult>> predicate)
+        public static IQuery<T> OrderBy<T, TResult>(this IQuery<T> obj, Expression<Func<T, TResult>> predicate)
         {
-            obj.OrderBy = $"ORDER BY {SimpleSelectHelper.GetPropertyName(predicate)} ASC";
+            obj.OrderBy = $"ORDER BY {QueryableBuilder.GetPropertyName(predicate)} ASC";
             return obj;
         }
 
@@ -195,13 +194,13 @@ namespace ExecuteSqlBulk
         /// <param name="obj"></param>
         /// <param name="predicate"></param>
         /// <returns></returns>
-        public static SimpleSelectModel<T> ThenBy<T, TResult>(this SimpleSelectModel<T> obj, Expression<Func<T, TResult>> predicate)
+        public static IQuery<T> ThenBy<T, TResult>(this IQuery<T> obj, Expression<Func<T, TResult>> predicate)
         {
             if (string.IsNullOrWhiteSpace(obj.OrderBy))
             {
                 throw new Exception("请先调用OrderBy");
             }
-            obj.OrderBy = $"{obj.OrderBy},{SimpleSelectHelper.GetPropertyName(predicate)} ASC";
+            obj.OrderBy = $"{obj.OrderBy},{QueryableBuilder.GetPropertyName(predicate)} ASC";
             return obj;
         }
 
@@ -213,9 +212,9 @@ namespace ExecuteSqlBulk
         /// <param name="obj"></param>
         /// <param name="predicate"></param>
         /// <returns></returns>
-        public static SimpleSelectModel<T> OrderByDescending<T, TResult>(this SimpleSelectModel<T> obj, Expression<Func<T, TResult>> predicate)
+        public static IQuery<T> OrderByDescending<T, TResult>(this IQuery<T> obj, Expression<Func<T, TResult>> predicate)
         {
-            obj.OrderBy = $"ORDER BY {SimpleSelectHelper.GetPropertyName(predicate)} DESC";
+            obj.OrderBy = $"ORDER BY {QueryableBuilder.GetPropertyName(predicate)} DESC";
             return obj;
         }
 
@@ -227,13 +226,13 @@ namespace ExecuteSqlBulk
         /// <param name="obj"></param>
         /// <param name="predicate"></param>
         /// <returns></returns>
-        public static SimpleSelectModel<T> ThenByDescending<T, TResult>(this SimpleSelectModel<T> obj, Expression<Func<T, TResult>> predicate)
+        public static IQuery<T> ThenByDescending<T, TResult>(this IQuery<T> obj, Expression<Func<T, TResult>> predicate)
         {
             if (string.IsNullOrWhiteSpace(obj.OrderBy))
             {
                 throw new Exception("请先调用OrderBy");
             }
-            obj.OrderBy = $"{obj.OrderBy},{SimpleSelectHelper.GetPropertyName(predicate)} DESC";
+            obj.OrderBy = $"{obj.OrderBy},{QueryableBuilder.GetPropertyName(predicate)} DESC";
             return obj;
         }
 
