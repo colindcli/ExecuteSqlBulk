@@ -53,14 +53,14 @@ namespace ExecuteSqlBulk
         private void DropTempTable(string tempTablename)
         {
             var cmdTempTable = Connection.CreateCommand();
-            cmdTempTable.CommandText = "DROP TABLE " + tempTablename;
+            cmdTempTable.CommandText = $"DROP TABLE [{tempTablename}]";
             cmdTempTable.ExecuteNonQuery();
         }
 
         private int DeleteTempAndDestination(string destinationTableName, string tempTablename,
             string columnNameToMatch)
         {
-            var deleteSql = $"DELETE {destinationTableName} FROM {destinationTableName} t1,{tempTablename} t2 WHERE t1.{columnNameToMatch}=t2.{columnNameToMatch};";
+            var deleteSql = $"DELETE [{destinationTableName}] FROM [{destinationTableName}] t1,{tempTablename} t2 WHERE t1.[{columnNameToMatch}]=t2.[{columnNameToMatch}];";
 
             var cmdTempTable = Connection.CreateCommand();
             cmdTempTable.CommandText = deleteSql;
@@ -70,7 +70,7 @@ namespace ExecuteSqlBulk
         private void CreateTempTable(string destinationTableName, string tempTablename)
         {
             var cmdTempTable = Connection.CreateCommand();
-            cmdTempTable.CommandText = $"SELECT TOP 0 * INTO {tempTablename} FROM {destinationTableName};";
+            cmdTempTable.CommandText = $"SELECT TOP 0 * INTO [{tempTablename}] FROM [{destinationTableName}];";
             cmdTempTable.ExecuteNonQuery();
         }
     }

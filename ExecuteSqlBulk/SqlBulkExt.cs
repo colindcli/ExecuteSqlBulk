@@ -12,7 +12,7 @@ namespace ExecuteSqlBulk
         #region 批量更新
 
         /// <summary>
-        /// 批量插入数据
+        /// 批量插入数据（支持NotMapped）
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="db"></param>
@@ -27,7 +27,7 @@ namespace ExecuteSqlBulk
         }
 
         /// <summary>
-        /// 批量更新数据
+        /// 批量更新数据（支持NotMapped，不支持Column）
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="db"></param>
@@ -68,7 +68,7 @@ namespace ExecuteSqlBulk
         }
 
         /// <summary>
-        /// 批量删除数据
+        /// 批量删除数据（支持NotMapped，不支持Column）
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="db"></param>

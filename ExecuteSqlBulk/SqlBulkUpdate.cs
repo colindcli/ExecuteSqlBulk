@@ -42,7 +42,7 @@ namespace ExecuteSqlBulk
         private void DropTempTable(string tempTablename)
         {
             var cmdTempTable = Connection.CreateCommand();
-            cmdTempTable.CommandText = "DROP TABLE " + tempTablename;
+            cmdTempTable.CommandText = $"DROP TABLE [{tempTablename}]";
             cmdTempTable.ExecuteNonQuery();
         }
 
@@ -51,18 +51,13 @@ namespace ExecuteSqlBulk
             var updateSql = "";
             for (var i = 0; i < columnNamesToUpdate.Length; i++)
             {
-                updateSql += string.Format("Target.[{0}]=Source.[{0}]", columnNamesToUpdate[i]);
+                updateSql += $"Target.[{columnNamesToUpdate[i]}]=Source.[{columnNamesToUpdate[i]}]";
                 if (i < columnNamesToUpdate.Length - 1)
                 {
                     updateSql += ",";
                 }
             }
-            var mergeSql = "MERGE INTO " + destinationTableName + " AS Target\r\n" +
-                           "USING " + tempTablename + " AS Source\r\n" +
-                           "ON\r\n" +
-                           "Target." + matchingColumn + " = Source." + matchingColumn + "\r\n" +
-                           "WHEN MATCHED THEN\r\n" +
-                           "UPDATE SET " + updateSql + ";";
+            var mergeSql = $"MERGE INTO [{destinationTableName}] AS Target USING [{tempTablename}] AS Source ON Target.[{matchingColumn}]=Source.[{matchingColumn}] WHEN MATCHED THEN UPDATE SET {updateSql};";
 
             var cmdTempTable = Connection.CreateCommand();
             cmdTempTable.CommandText = mergeSql;
@@ -72,9 +67,7 @@ namespace ExecuteSqlBulk
         private void CreateTempTable(string destinationTableName, string tempTablename)
         {
             var cmdTempTable = Connection.CreateCommand();
-            cmdTempTable.CommandText = "SELECT TOP 0 * \r\n" +
-                                       "INTO " + tempTablename + "\r\n" +
-                                       "FROM " + destinationTableName;
+            cmdTempTable.CommandText = $"SELECT TOP 0 * INTO [{tempTablename}] FROM [{destinationTableName}]";
             cmdTempTable.ExecuteNonQuery();
         }
     }

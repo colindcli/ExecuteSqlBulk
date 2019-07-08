@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data;
 using System.Data.SqlClient;
@@ -12,7 +11,7 @@ namespace ExecuteSqlBulk
     {
         public static string[] GetColumns(object obj)
         {
-            return obj.GetType().GetProperties().Select(GetColumnName).ToArray();
+            return obj.GetType().GetProperties().Select(GetColumnName).Where(p => p != null).ToArray();
         }
 
         public static DataTable GetDataTableFromFields<T>(IEnumerable<T> data, SqlBulkCopy sqlBulkCopy)
@@ -23,6 +22,10 @@ namespace ExecuteSqlBulk
             foreach (var propertyInfo in listType)
             {
                 var columnName = GetColumnName(propertyInfo);
+                if (columnName == null)
+                {
+                    continue;
+                }
                 dt.Columns.Add(columnName, propertyInfo.PropertyType);
                 sqlBulkCopy.ColumnMappings.Add(columnName, columnName);
                 list.Add(new PropertiesModel()
@@ -44,7 +47,7 @@ namespace ExecuteSqlBulk
 
             return dt;
         }
-        
+
         /// <summary>
         /// Gets the column name for the target database.  
         /// If the System.ComponentModel.DataAnnotations.ColumnAttribute is used
@@ -54,8 +57,14 @@ namespace ExecuteSqlBulk
         /// <returns></returns>
         public static string GetColumnName(PropertyInfo propertyInfo)
         {
-            var columnAttribute = propertyInfo.GetCustomAttribute<ColumnAttribute>(false);
-            return columnAttribute != null ? columnAttribute.Name : propertyInfo.Name;
+            var columnAttributes = propertyInfo.GetCustomAttributes().ToList();
+            if (columnAttributes.Exists(p => p is NotMappedAttribute))
+            {
+                return null;
+            }
+
+            var columnAttribute = columnAttributes.Find(p => p is ColumnAttribute);
+            return columnAttribute != null ? ((ColumnAttribute)columnAttribute).Name : propertyInfo.Name;
         }
     }
 }

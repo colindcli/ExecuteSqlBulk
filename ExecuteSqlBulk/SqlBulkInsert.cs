@@ -18,7 +18,7 @@ namespace ExecuteSqlBulk
         /// <param name="data"></param>
         public void BulkInsert<T>(string destinationTableName, IEnumerable<T> data)
         {
-            SqlBulkCopy.DestinationTableName = destinationTableName;
+            SqlBulkCopy.DestinationTableName = $"[{destinationTableName}]";
             var dt = Common.GetDataTableFromFields(data, SqlBulkCopy);
 
             SqlBulkCopy.BatchSize = 100000;

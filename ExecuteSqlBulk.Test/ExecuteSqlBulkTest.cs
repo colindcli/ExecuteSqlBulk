@@ -1,9 +1,8 @@
 ﻿using Dapper;
-using KellermanSoftware.CompareNetObjects;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Data.SqlClient;
 using System.Diagnostics;
 using System.IO;
@@ -22,207 +21,60 @@ namespace ExecuteSqlBulk.Test
             Excute();
         }
 
+        /// <summary>
+        /// 测试批量添加
+        /// </summary>
         [TestMethod]
         public void TestMethod1()
         {
             using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
             {
-                Assert.IsTrue(db.Query<int>(@"SELECT COUNT(1) FROM dbo.Page p;").FirstOrDefault() == Number);
+                Assert.IsTrue(db.Query<int>(@"SELECT COUNT(1) FROM dbo.[User] p;").FirstOrDefault() == Number);
             }
         }
 
+        /// <summary>
+        /// 测试批量更新
+        /// </summary>
         [TestMethod]
         public void TestMethod2()
         {
             using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
             {
-                var list = db.GetListByBulk<Page>(new
-                {
-                    PageId = new List<int>()
-                    {
-                        1,
-                        2,
-                        3,
-                        4,
-                        5
-                    }
-                }).ToList();
+                var list = db.Query<User>(@"SELECT * FROM dbo.[User] p;").ToList();
+                list.ForEach(p => p.UserName = "UserName");
+                db.BulkUpdate(list, p => new { p.UserName, p.Content }, p => new { p.UserId });
 
-                var json = JsonConvert.SerializeObject(list);
-
-                //
-                var txt = File.ReadAllText($"{FilePath}file_1_result.json");
-                var rows = JsonConvert.DeserializeObject<List<Page>>(txt);
-
-                var b = new CompareLogic().Compare(list, rows);
-                Assert.IsTrue(b.AreEqual);
+                Assert.IsTrue(db.Query<User>(@"SELECT * FROM dbo.[User] p;").Count(p => p.UserName == "UserName") == Number);
             }
         }
 
+        /// <summary>
+        /// 测试批量删除
+        /// </summary>
         [TestMethod]
         public void TestMethod3()
         {
             using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
             {
-                var list = db.GetListByBulk<Page>(new
-                {
-                    PageId = new List<int>()
-                    {
-                        1,
-                        2,
-                        3,
-                        4,
-                        5
-                    }
-                }).Take(2).ToList();
+                var list = db.Query<User>(@"SELECT * FROM dbo.[User] p;").Take(10).ToList();
+                db.BulkDelete(list, p => new { p.UserId });
 
-                var json = JsonConvert.SerializeObject(list);
-
-                //
-                var txt = File.ReadAllText($"{FilePath}file_2_result.json");
-                var rows = JsonConvert.DeserializeObject<List<Page>>(txt);
-
-                var b = new CompareLogic().Compare(list, rows);
-                Assert.IsTrue(b.AreEqual);
+                Assert.IsTrue(db.Query<User>(@"SELECT * FROM dbo.[User] p;").Count() == Number - 10);
             }
         }
 
+        /// <summary>
+        /// 测试批量删除
+        /// </summary>
         [TestMethod]
         public void TestMethod4()
         {
             using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
             {
-                var list = db.GetListByBulk<Page>(new
-                {
+                db.BulkDelete<User>();
 
-                }).ToList();
-
-                var json = JsonConvert.SerializeObject(list);
-
-                //
-                var txt = File.ReadAllText($"{FilePath}file_3_result.json");
-                var rows = JsonConvert.DeserializeObject<List<Page>>(txt);
-
-                var b = new CompareLogic().Compare(list, rows);
-                Assert.IsTrue(b.AreEqual);
-            }
-        }
-
-        [TestMethod]
-        public void TestMethod5()
-        {
-            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
-            {
-                var list = db.GetListByBulk<Page>(null).ToList();
-
-                var json = JsonConvert.SerializeObject(list);
-
-                //
-                var txt = File.ReadAllText($"{FilePath}file_3_result.json");
-                var rows = JsonConvert.DeserializeObject<List<Page>>(txt);
-
-                var b = new CompareLogic().Compare(list, rows);
-                Assert.IsTrue(b.AreEqual);
-            }
-        }
-
-        [TestMethod]
-        public void TestMethod6()
-        {
-            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
-            {
-                var list = db.GetListByBulk<Page>(null).OrderBy(p => p.PageLink).ThenBy(p => p.PageName).ToList();
-
-                var json = JsonConvert.SerializeObject(list);
-
-                //
-                var txt = File.ReadAllText($"{FilePath}file_4_result.json");
-                var rows = JsonConvert.DeserializeObject<List<Page>>(txt);
-
-                var b = new CompareLogic().Compare(list, rows);
-                Assert.IsTrue(b.AreEqual);
-            }
-        }
-
-        [TestMethod]
-        public void TestMethod7()
-        {
-            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
-            {
-                var list = db.GetListByBulk<Page>(null).OrderBy(p => p.PageLink).ThenByDescending(p => p.PageName).ToList();
-
-                var json = JsonConvert.SerializeObject(list);
-
-                //
-                var txt = File.ReadAllText($"{FilePath}file_5_result.json");
-                var rows = JsonConvert.DeserializeObject<List<Page>>(txt);
-
-                var b = new CompareLogic().Compare(list, rows);
-                Assert.IsTrue(b.AreEqual);
-            }
-        }
-
-        [TestMethod]
-        public void TestMethod8()
-        {
-            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
-            {
-                var list = db.GetListByBulk<Page>(null).OrderByDescending(p => p.PageLink).ThenBy(p => p.PageName).ToList();
-
-                var json = JsonConvert.SerializeObject(list);
-
-                //
-                var txt = File.ReadAllText($"{FilePath}file_6_result.json");
-                var rows = JsonConvert.DeserializeObject<List<Page>>(txt);
-
-                var b = new CompareLogic().Compare(list, rows);
-                Assert.IsTrue(b.AreEqual);
-            }
-        }
-
-        [TestMethod]
-        public void TestMethod9()
-        {
-            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
-            {
-                var list = db.GetListByBulk<Page>(null).OrderByDescending(p => p.PageLink).ThenByDescending(p => p.PageName).ToList();
-
-                var json = JsonConvert.SerializeObject(list);
-
-                //
-                var txt = File.ReadAllText($"{FilePath}file_7_result.json");
-                var rows = JsonConvert.DeserializeObject<List<Page>>(txt);
-
-                var b = new CompareLogic().Compare(list, rows);
-                Assert.IsTrue(b.AreEqual);
-            }
-        }
-
-        [TestMethod]
-        public void TestMethod10()
-        {
-            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
-            {
-                var list = new List<Page>();
-
-                var item1 = db.GetListByBulk<Page>(null).OrderByDescending(p => p.PageLink).ThenBy(p => p.PageName).FirstOrDefault();
-                var item2 = db.GetListByBulk<Page>(null).OrderByDescending(p => p.PageLink).ThenByDescending(p => p.PageName).FirstOrDefault();
-                var item3 = db.GetListByBulk<Page>(null).OrderBy(p => p.PageLink).OrderBy(p => p.PageName).FirstOrDefault();
-                var item4 = db.GetListByBulk<Page>(null).OrderBy(p => p.PageLink).ThenByDescending(p => p.PageName).FirstOrDefault();
-
-                list.Add(item1);
-                list.Add(item2);
-                list.Add(item3);
-                list.Add(item4);
-
-                var json = JsonConvert.SerializeObject(list);
-
-                //
-                var txt = File.ReadAllText($"{FilePath}file_8_result.json");
-                var rows = JsonConvert.DeserializeObject<List<Page>>(txt);
-
-                var b = new CompareLogic().Compare(list, rows);
-                Assert.IsTrue(b.AreEqual);
+                Assert.IsTrue(!db.Query<User>(@"SELECT * FROM dbo.[User] p;").Any());
             }
         }
 
@@ -230,14 +82,14 @@ namespace ExecuteSqlBulk.Test
 
         private static void Excute()
         {
-            var list = new List<Page>();
+            var list = new List<User>();
             for (var i = 0; i < Number; i++)
             {
-                list.Add(new Page()
+                list.Add(new User()
                 {
-                    PageId = i,
-                    PageLink = $"Link_{i % 10}",
-                    PageName = $"Name_{i}"
+                    UserId = i,
+                    Content = $"Link_{i % 10}",
+                    UserName = $"Name_{i}"
                 });
             }
 
@@ -246,9 +98,9 @@ namespace ExecuteSqlBulk.Test
             using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
             {
                 db.BulkInsert(list);
-                //row = db.BulkUpdate(list, p => new { p.PageName, p.PageLink }, p => new { p.PageId });
-                //row = db.BulkDelete(list, p => new { p.PageId });
-                //db.BulkDelete<Page>();
+                //row = db.BulkUpdate(list, p => new { p.UserName, p.Content }, p => new { p.UserId });
+                //row = db.BulkDelete(list, p => new { p.UserId });
+                //db.BulkDelete<User>();
             }
 
             sw.Stop();
@@ -270,26 +122,39 @@ namespace ExecuteSqlBulk.Test
             {
                 connection.Open();
                 connection.Execute(@"
-IF(NOT EXISTS(SELECT * FROM sys.objects o WHERE o.name='Page'))
-CREATE TABLE [dbo].[Page](
-	[PageId] [INT] NOT NULL,
-	[PageName] [VARCHAR](50) NULL,
-	[PageLink] [VARCHAR](50) NULL,
- CONSTRAINT [PK_Page_1] PRIMARY KEY CLUSTERED 
+IF(NOT EXISTS(SELECT * FROM sys.objects o WHERE o.name='User'))
+CREATE TABLE [dbo].[User](
+	[UserId] [INT] NOT NULL,
+	[UserName] [VARCHAR](50) NULL,
+	[Content] [VARCHAR](50) NULL,
+ CONSTRAINT [PK_User_1] PRIMARY KEY CLUSTERED 
 (
-	[PageId] ASC
+	[UserId] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 ) ON [PRIMARY];");
-                connection.Execute(@"TRUNCATE TABLE dbo.Page;");
+                connection.Execute(@"TRUNCATE TABLE dbo.[User];");
             }
             //Console.WriteLine("Created database");
         }
 
-        public class Page
+        public partial class User
         {
-            public int PageId { get; set; }
-            public string PageName { get; set; }
-            public string PageLink { get; set; }
+            /// <summary>
+            /// 设置列名
+            /// </summary>
+            //[Column("UserId")]
+            public int UserId { get; set; }
+            public string UserName { get; set; }
+            public string Content { get; set; }
+        }
+
+        public partial class User
+        {
+            /// <summary>
+            /// 排除列
+            /// </summary>
+            [NotMapped]
+            public string UserDepth { get; set; }
         }
     }
 }
