@@ -8,21 +8,53 @@ namespace ExecuteSqlBulk
     /// <typeparam name="T"></typeparam>
     public interface IQuery<T>
     {
+        /// <summary>
+        /// 
+        /// </summary>
         SqlConnection Db { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
         SqlTransaction Transaction { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
         int? CommandTimeout { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
         object WhereConditions { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
         int Top { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
         string TableName { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
         string Where { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
         string OrderBy { get; set; }
     }
 
     /// <summary>
     /// 
     /// </summary>
+    public interface IOrderQuery<T> : IQuery<T>
+    {
+
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
     /// <typeparam name="T"></typeparam>
-    internal class Queryable<T> : IQuery<T>
+    internal class Queryable<T> : IOrderQuery<T>
     {
         public SqlConnection Db { get; set; }
         public SqlTransaction Transaction { get; set; }

@@ -88,6 +88,62 @@ namespace ExecuteSqlBulk.Test
         }
 
         [TestMethod]
+        public void TestMethod3A()
+        {
+            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
+            {
+                var list = db.GetListByBulk<Page>(new
+                {
+                    PageId = new List<int>()
+                    {
+                        1,
+                        2,
+                        3,
+                        4,
+                        5
+                    }
+                }).OrderBy(p=>p.PageLink).Take(2).ToList();
+
+                var json = JsonConvert.SerializeObject(list);
+
+                //
+                var txt = File.ReadAllText($"{FilePath}file_2_result1.json");
+                var rows = JsonConvert.DeserializeObject<List<Page>>(txt);
+
+                var b = new CompareLogic().Compare(list, rows);
+                Assert.IsTrue(b.AreEqual);
+            }
+        }
+
+        [TestMethod]
+        public void TestMethod3B()
+        {
+            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
+            {
+                var list = db.GetListByBulk<Page>(new
+                {
+                    PageId = new List<int>()
+                    {
+                        1,
+                        2,
+                        3,
+                        4,
+                        5
+                    }
+                }).Take(2).OrderBy(p => p.PageLink).ToList();
+
+                var json = JsonConvert.SerializeObject(list);
+
+                //
+                var txt = File.ReadAllText($"{FilePath}file_2_result1.json");
+                var rows = JsonConvert.DeserializeObject<List<Page>>(txt);
+
+                var b = new CompareLogic().Compare(list, rows);
+                Assert.IsTrue(b.AreEqual);
+            }
+        }
+
+        [TestMethod]
         public void TestMethod4()
         {
             using (var db = new SqlConnection(ConnStringSqlBulkTestDb))

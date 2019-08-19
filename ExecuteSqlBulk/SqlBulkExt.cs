@@ -1,18 +1,17 @@
-﻿using Dapper;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
-using System.Linq;
 using System.Linq.Expressions;
 
 namespace ExecuteSqlBulk
 {
+    /// <summary>
+    /// 扩展
+    /// </summary>
     public static class SqlBulkExt
     {
-        #region 批量更新
-
         /// <summary>
-        /// 批量插入数据（支持NotMapped）
+        /// 批量插入数据（支持NotMapped属性）
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="db"></param>
@@ -27,15 +26,17 @@ namespace ExecuteSqlBulk
         }
 
         /// <summary>
-        /// 批量更新数据（支持NotMapped，不支持Column）
+        /// 批量更新数据（支持NotMapped属性）
         /// </summary>
         /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TUpdateColumn"></typeparam>
+        /// <typeparam name="TPkColumn"></typeparam>
         /// <param name="db"></param>
         /// <param name="dt"></param>
         /// <param name="columnUpdateExpression">更新列集合</param>
         /// <param name="columnPrimaryKeyExpression">主键列</param>
         /// <returns>受影响行</returns>
-        public static int BulkUpdate<T>(this SqlConnection db, List<T> dt, Func<T, object> columnUpdateExpression, Func<T, object> columnPrimaryKeyExpression) where T : new()
+        public static int BulkUpdate<T, TUpdateColumn, TPkColumn>(this SqlConnection db, List<T> dt, Expression<Func<T, TUpdateColumn>> columnUpdateExpression, Expression<Func<T, TPkColumn>> columnPrimaryKeyExpression) where T : new()
         {
             if (columnPrimaryKeyExpression == null)
             {
@@ -46,46 +47,70 @@ namespace ExecuteSqlBulk
                 throw new Exception("columnInputExpression不能为空");
             }
 
-            var t = new T();
             var tableName = typeof(T).Name;
-            var pkObj = columnPrimaryKeyExpression.Invoke(t);
-            var pks = Common.GetColumns(pkObj);
-            if (pks.Length == 0)
+
+            var pkColumns = GetColumns(columnPrimaryKeyExpression);
+            if (pkColumns.Count == 0)
             {
                 throw new Exception("主键不能为空");
             }
-            var obj = columnUpdateExpression.Invoke(t);
-            var columns = Common.GetColumns(obj);
-            if (columns.Length == 0)
+
+            var updateColumns = GetColumns(columnUpdateExpression);
+            if (updateColumns.Count == 0)
             {
                 throw new Exception("更新列不能为空");
             }
 
             using (var sbu = new SqlBulkUpdate(db))
             {
-                return sbu.BulkUpdate(tableName, dt, pks[0], columns);
+                return sbu.BulkUpdate(tableName, dt, pkColumns, updateColumns);
             }
         }
 
         /// <summary>
-        /// 批量删除数据（支持NotMapped，不支持Column）
+        /// 获取列
         /// </summary>
         /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TColumn"></typeparam>
+        /// <param name="expression"></param>
+        /// <returns></returns>
+        private static List<string> GetColumns<T, TColumn>(Expression<Func<T, TColumn>> expression) where T : new()
+        {
+            var columns = new List<string>();
+            if (expression.Body is MemberExpression body)
+            {
+                var col = body.Member.Name;
+                columns.Add(col);
+            }
+            else
+            {
+                var t = new T();
+                var obj = expression.Compile().Invoke(t);
+                var cols = Common.GetColumns(obj);
+                columns.AddRange(cols);
+            }
+
+            return columns;
+        }
+
+        /// <summary>
+        /// 批量删除数据（支持NotMapped属性）
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TPk"></typeparam>
         /// <param name="db"></param>
         /// <param name="dt"></param>
         /// <param name="columnPrimaryKeyExpression"></param>
         /// <returns>受影响行</returns>
-        public static int BulkDelete<T>(this SqlConnection db, List<T> dt, Func<T, object> columnPrimaryKeyExpression) where T : new()
+        public static int BulkDelete<T, TPk>(this SqlConnection db, List<T> dt, Expression<Func<T, TPk>> columnPrimaryKeyExpression) where T : new()
         {
             if (columnPrimaryKeyExpression == null)
             {
                 throw new Exception("columnPrimaryKeyExpression不能为空");
             }
 
-            var t = new T();
-            var pkObj = columnPrimaryKeyExpression.Invoke(t);
-            var pks = Common.GetColumns(pkObj);
-            if (pks.Length == 0)
+            var pkColumns = GetColumns(columnPrimaryKeyExpression);
+            if (pkColumns.Count == 0)
             {
                 throw new Exception("主键不能为空");
             }
@@ -93,7 +118,7 @@ namespace ExecuteSqlBulk
             var tableName = typeof(T).Name;
             using (var sbc = new SqlBulkDelete(db))
             {
-                return sbc.BulkDelete(tableName, dt, pks[0]);
+                return sbc.BulkDelete(tableName, dt, pkColumns);
             }
         }
 
@@ -110,132 +135,5 @@ namespace ExecuteSqlBulk
                 sbc.BulkDelete(tableName);
             }
         }
-
-        #endregion
-
-        #region GetListByBulk
-
-        /// <summary>
-        /// 获取数据
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="db"></param>
-        /// <param name="whereConditions"></param>
-        /// <param name="transaction"></param>
-        /// <param name="commandTimeout"></param>
-        /// <returns></returns>
-        public static IQuery<T> GetListByBulk<T>(this SqlConnection db, object whereConditions, SqlTransaction transaction = null, int? commandTimeout = null)
-        {
-            var obj = QueryableBuilder.GetListByBulk<T>(whereConditions);
-            obj.Db = db;
-            obj.Transaction = transaction;
-            obj.CommandTimeout = commandTimeout;
-            obj.WhereConditions = whereConditions;
-            return obj;
-        }
-
-        /// <summary>
-        /// 取列表
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="obj"></param>
-        /// <returns></returns>
-        public static List<T> ToList<T>(this IQuery<T> obj)
-        {
-            var sql = $"SELECT{(obj.Top >= 0 ? $" TOP ({obj.Top})" : "")} * FROM {obj.TableName} {obj.Where} {obj.OrderBy};";
-            return obj.Db.Query<T>(sql, obj.WhereConditions, transaction: obj.Transaction, commandTimeout: obj.CommandTimeout).ToList();
-        }
-
-        /// <summary>
-        /// 取第一条
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="obj"></param>
-        /// <returns></returns>
-        public static T FirstOrDefault<T>(this IQuery<T> obj)
-        {
-            obj.Top = 1;
-            var sql = $"SELECT{(obj.Top >= 0 ? $" TOP ({obj.Top})" : "")} * FROM {obj.TableName} {obj.Where} {obj.OrderBy};";
-            return obj.Db.Query<T>(sql, obj.WhereConditions, transaction: obj.Transaction, commandTimeout: obj.CommandTimeout).FirstOrDefault();
-        }
-
-        /// <summary>
-        /// 获取几条
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="obj"></param>
-        /// <param name="number"></param>
-        /// <returns></returns>
-        public static IQuery<T> Take<T>(this IQuery<T> obj, int number)
-        {
-            obj.Top = number;
-            return obj;
-        }
-
-        /// <summary>
-        /// 顺序
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="obj"></param>
-        /// <param name="predicate"></param>
-        /// <returns></returns>
-        public static IQuery<T> OrderBy<T, TResult>(this IQuery<T> obj, Expression<Func<T, TResult>> predicate)
-        {
-            obj.OrderBy = $"ORDER BY {QueryableBuilder.GetPropertyName(predicate)} ASC";
-            return obj;
-        }
-
-        /// <summary>
-        /// 顺序
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="obj"></param>
-        /// <param name="predicate"></param>
-        /// <returns></returns>
-        public static IQuery<T> ThenBy<T, TResult>(this IQuery<T> obj, Expression<Func<T, TResult>> predicate)
-        {
-            if (string.IsNullOrWhiteSpace(obj.OrderBy))
-            {
-                throw new Exception("请先调用OrderBy");
-            }
-            obj.OrderBy = $"{obj.OrderBy},{QueryableBuilder.GetPropertyName(predicate)} ASC";
-            return obj;
-        }
-
-        /// <summary>
-        /// 倒序
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="obj"></param>
-        /// <param name="predicate"></param>
-        /// <returns></returns>
-        public static IQuery<T> OrderByDescending<T, TResult>(this IQuery<T> obj, Expression<Func<T, TResult>> predicate)
-        {
-            obj.OrderBy = $"ORDER BY {QueryableBuilder.GetPropertyName(predicate)} DESC";
-            return obj;
-        }
-
-        /// <summary>
-        /// 倒序
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <typeparam name="TResult"></typeparam>
-        /// <param name="obj"></param>
-        /// <param name="predicate"></param>
-        /// <returns></returns>
-        public static IQuery<T> ThenByDescending<T, TResult>(this IQuery<T> obj, Expression<Func<T, TResult>> predicate)
-        {
-            if (string.IsNullOrWhiteSpace(obj.OrderBy))
-            {
-                throw new Exception("请先调用OrderBy");
-            }
-            obj.OrderBy = $"{obj.OrderBy},{QueryableBuilder.GetPropertyName(predicate)} DESC";
-            return obj;
-        }
-
-        #endregion
     }
 }

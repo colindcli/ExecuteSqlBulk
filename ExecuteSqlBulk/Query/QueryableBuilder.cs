@@ -6,7 +6,7 @@ using System.Text;
 
 namespace ExecuteSqlBulk
 {
-    public class QueryableBuilder
+    internal class QueryableBuilder
     {
         private static Dictionary<Type, string> TypeNames { get; } = new Dictionary<Type, string>();
         private static Dictionary<object, string> ObjectWhere { get; } = new Dictionary<object, string>();
@@ -38,7 +38,7 @@ namespace ExecuteSqlBulk
         /// <typeparam name="T"></typeparam>
         /// <param name="whereConditions"></param>
         /// <returns></returns>
-        protected internal static IQuery<T> GetListByBulk<T>(object whereConditions)
+        internal static IQuery<T> GetListByBulk<T>(object whereConditions)
         {
             var name = GetName<T>();
             var where = GetWhere(whereConditions);
@@ -109,7 +109,7 @@ namespace ExecuteSqlBulk
             return wh;
         }
 
-        protected internal static string GetPropertyName<T, TResult>(Expression<Func<T, TResult>> expression)
+        internal static string GetPropertyName<T, TResult>(Expression<Func<T, TResult>> expression)
         {
             if (expression == null)
             {
@@ -121,13 +121,13 @@ namespace ExecuteSqlBulk
             {
                 rtn = ((MemberExpression)body.Operand).Member.Name;
             }
-            else if (expression.Body is MemberExpression)
+            else if (expression.Body is MemberExpression body2)
             {
-                rtn = ((MemberExpression)expression.Body).Member.Name;
+                rtn = body2.Member.Name;
             }
-            else if (expression.Body is ParameterExpression)
+            else if (expression.Body is ParameterExpression body3)
             {
-                rtn = ((ParameterExpression)expression.Body).Type.Name;
+                rtn = body3.Type.Name;
             }
             return rtn;
         }

@@ -2,12 +2,13 @@
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Text;
 
 namespace ExecuteSqlBulk
 {
-    public class SqlBulkUpdate : SqlBulkBase
+    internal class SqlBulkUpdate : SqlBulkBase
     {
-        public SqlBulkUpdate(SqlConnection connection)
+        internal SqlBulkUpdate(SqlConnection connection)
         {
             SqlBulk(connection);
         }
@@ -18,9 +19,9 @@ namespace ExecuteSqlBulk
         /// <typeparam name="T"></typeparam>
         /// <param name="destinationTableName">表名</param>
         /// <param name="data">数据</param>
-        /// <param name="columnNameToMatch">主键</param>
-        /// <param name="columnNamesToUpdate">更新的列集合</param>
-        public int BulkUpdate<T>(string destinationTableName, IEnumerable<T> data, string columnNameToMatch, string[] columnNamesToUpdate)
+        /// <param name="pkColumns">主键</param>
+        /// <param name="updateColumns">更新的列集合</param>
+        internal int BulkUpdate<T>(string destinationTableName, IEnumerable<T> data, List<string> pkColumns, List<string> updateColumns)
         {
             var tempTablename = "#" + destinationTableName + "_" + Guid.NewGuid().ToString("N");
             //
@@ -32,7 +33,7 @@ namespace ExecuteSqlBulk
             SqlBulkCopy.BatchSize = 100000;
             SqlBulkCopy.WriteToServer(dt);
             //
-            var row = MergeTempAndDestination(destinationTableName, tempTablename, columnNameToMatch, columnNamesToUpdate);
+            var row = MergeTempAndDestination(destinationTableName, tempTablename, pkColumns, updateColumns);
             //
             DropTempTable(tempTablename);
 
@@ -46,18 +47,28 @@ namespace ExecuteSqlBulk
             cmdTempTable.ExecuteNonQuery();
         }
 
-        private int MergeTempAndDestination(string destinationTableName, string tempTablename, string matchingColumn, string[] columnNamesToUpdate)
+        private int MergeTempAndDestination(string destinationTableName, string tempTablename, List<string> pkColumns, List<string> updateColumns)
         {
-            var updateSql = "";
-            for (var i = 0; i < columnNamesToUpdate.Length; i++)
+            var pkSql = new StringBuilder();
+            for (var i = 0; i < pkColumns.Count; i++)
             {
-                updateSql += $"Target.[{columnNamesToUpdate[i]}]=Source.[{columnNamesToUpdate[i]}]";
-                if (i < columnNamesToUpdate.Length - 1)
+                if (i > 0)
                 {
-                    updateSql += ",";
+                    pkSql.Append(" AND");
                 }
+                pkSql.Append($" Target.[{pkColumns[i]}]=Source.[{pkColumns[i]}]");
             }
-            var mergeSql = $"MERGE INTO [{destinationTableName}] AS Target USING [{tempTablename}] AS Source ON Target.[{matchingColumn}]=Source.[{matchingColumn}] WHEN MATCHED THEN UPDATE SET {updateSql};";
+
+            var updateSql = new StringBuilder();
+            for (var i = 0; i < updateColumns.Count; i++)
+            {
+                if (i > 0)
+                {
+                    updateSql.Append(",");
+                }
+                updateSql.Append($"Target.[{updateColumns[i]}]=Source.[{updateColumns[i]}]");
+            }
+            var mergeSql = $"MERGE INTO [{destinationTableName}] AS Target USING [{tempTablename}] AS Source ON {pkSql} WHEN MATCHED THEN UPDATE SET {updateSql};";
 
             var cmdTempTable = Connection.CreateCommand();
             cmdTempTable.CommandText = mergeSql;

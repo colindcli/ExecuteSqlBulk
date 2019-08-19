@@ -7,14 +7,29 @@ using System.Reflection;
 
 namespace ExecuteSqlBulk
 {
-    public class Common
+    /// <summary>
+    /// 
+    /// </summary>
+    internal class Common
     {
-        public static string[] GetColumns(object obj)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        internal static string[] GetColumns(object obj)
         {
             return obj.GetType().GetProperties().Select(GetColumnName).Where(p => p != null).ToArray();
         }
 
-        public static DataTable GetDataTableFromFields<T>(IEnumerable<T> data, SqlBulkCopy sqlBulkCopy)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="data"></param>
+        /// <param name="sqlBulkCopy"></param>
+        /// <returns></returns>
+        internal static DataTable GetDataTableFromFields<T>(IEnumerable<T> data, SqlBulkCopy sqlBulkCopy)
         {
             var dt = new DataTable();
             var listType = typeof(T).GetProperties();
@@ -49,13 +64,11 @@ namespace ExecuteSqlBulk
         }
 
         /// <summary>
-        /// Gets the column name for the target database.  
-        /// If the System.ComponentModel.DataAnnotations.ColumnAttribute is used
-        /// it will attempt to use this value as the target column name.
+        /// 
         /// </summary>
         /// <param name="propertyInfo"></param>
         /// <returns></returns>
-        public static string GetColumnName(PropertyInfo propertyInfo)
+        internal static string GetColumnName(PropertyInfo propertyInfo)
         {
             var columnAttributes = propertyInfo.GetCustomAttributes().ToList();
             if (columnAttributes.Exists(p => p is NotMappedAttribute))

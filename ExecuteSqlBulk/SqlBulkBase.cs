@@ -4,7 +4,7 @@ using System.Data.SqlClient;
 
 namespace ExecuteSqlBulk
 {
-    public class SqlBulkBase : IDisposable
+    internal class SqlBulkBase : IDisposable
     {
         protected SqlConnection Connection { get; set; }
         protected SqlBulkCopy SqlBulkCopy { get; set; }

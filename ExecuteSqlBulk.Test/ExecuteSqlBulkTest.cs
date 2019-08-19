@@ -1,5 +1,7 @@
 ﻿using Dapper;
+using KellermanSoftware.CompareNetObjects;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -22,53 +24,137 @@ namespace ExecuteSqlBulk.Test
         }
 
         /// <summary>
-        /// 测试批量添加
+        /// 测试
         /// </summary>
         [TestMethod]
         public void TestMethod1()
         {
+            TestBulkInsert();
+
+            TestBulkUpdate();
+            TestBulkUpdate2();
+            TestBulkUpdate3();
+
+            TestBlukDelete();
+            TestBlukDelete2();
+
+            TestDeleteAll();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="fileName"></param>
+        private void Test(string fileName)
+        {
             using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
             {
-                Assert.IsTrue(db.Query<int>(@"SELECT COUNT(1) FROM dbo.[User] p;").FirstOrDefault() == Number);
+                // 验证
+                var user = db.Query<User>(@"SELECT * FROM dbo.[User] p;").ToList();
+                var json = JsonConvert.SerializeObject(user);
+                var txt = File.ReadAllText($"{FilePath}{fileName}");
+                var rows = JsonConvert.DeserializeObject<List<User>>(txt);
+
+                var b = new CompareLogic().Compare(user, rows);
+                Assert.IsTrue(b.AreEqual);
             }
+        }
+
+        /// <summary>
+        /// 测试批量添加
+        /// </summary>
+        private void TestBulkInsert()
+        {
+            Test("bulk_1_result.json");
         }
 
         /// <summary>
         /// 测试批量更新
         /// </summary>
-        [TestMethod]
-        public void TestMethod2()
+        private void TestBulkUpdate()
         {
             using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
             {
                 var list = db.Query<User>(@"SELECT * FROM dbo.[User] p;").ToList();
-                list.ForEach(p => p.UserName = "UserName");
+                list.ForEach(p =>
+                {
+                    p.UserName = $"{p.UserName}_Test";
+                    p.Content = $"{p.Content}_Test";
+                });
                 db.BulkUpdate(list, p => new { p.UserName, p.Content }, p => new { p.UserId });
-
-                Assert.IsTrue(db.Query<User>(@"SELECT * FROM dbo.[User] p;").Count(p => p.UserName == "UserName") == Number);
             }
+
+            Test("bulk_2_result.json");
         }
 
         /// <summary>
-        /// 测试批量删除
+        /// 测试批量更新
         /// </summary>
-        [TestMethod]
-        public void TestMethod3()
+        private void TestBulkUpdate2()
         {
             using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
             {
-                var list = db.Query<User>(@"SELECT * FROM dbo.[User] p;").Take(10).ToList();
-                db.BulkDelete(list, p => new { p.UserId });
-
-                Assert.IsTrue(db.Query<User>(@"SELECT * FROM dbo.[User] p;").Count() == Number - 10);
+                var list = db.Query<User>(@"SELECT * FROM dbo.[User] p;").ToList();
+                list.ForEach(p =>
+                {
+                    p.Content = $"{p.Content}_View";
+                });
+                db.BulkUpdate(list, p => new { p.Content }, p => new { p.UserId, p.UserName });
             }
+
+            Test("bulk_3_result.json");
+        }
+
+        /// <summary>
+        /// 测试批量更新
+        /// </summary>
+        private void TestBulkUpdate3()
+        {
+            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
+            {
+                var list = db.Query<User>(@"SELECT * FROM dbo.[User] p;").ToList();
+                list.ForEach(p =>
+                {
+                    p.Content = $"{p.Content}_3";
+                });
+                db.BulkUpdate(list, p => p.Content, p => p.UserId);
+            }
+
+            Test("bulk_4_result.json");
         }
 
         /// <summary>
         /// 测试批量删除
         /// </summary>
-        [TestMethod]
-        public void TestMethod4()
+        public void TestBlukDelete()
+        {
+            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
+            {
+                var list = db.Query<User>(@"SELECT * FROM dbo.[User] p;").Where(p => p.UserId >= 0 && p.UserId < 5).ToList();
+                db.BulkDelete(list, p => new { p.UserId, p.UserName });
+            }
+
+            Test("bulk_5_result.json");
+        }
+
+        /// <summary>
+        /// 测试批量删除
+        /// </summary>
+        public void TestBlukDelete2()
+        {
+            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
+            {
+                var list = db.Query<User>(@"SELECT * FROM dbo.[User] p;").Where(p => p.UserId >= 5 && p.UserId < 10).ToList();
+                db.BulkDelete(list, p => p.UserId);
+            }
+
+            Test("bulk_6_result.json");
+        }
+
+        /// <summary>
+        /// 测试批量删除
+        /// </summary>
+        public void TestDeleteAll()
         {
             using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
             {
@@ -142,7 +228,6 @@ CREATE TABLE [dbo].[User](
             /// <summary>
             /// 设置列名
             /// </summary>
-            //[Column("UserId")]
             public int UserId { get; set; }
             public string UserName { get; set; }
             public string Content { get; set; }

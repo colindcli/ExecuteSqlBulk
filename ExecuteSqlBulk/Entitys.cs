@@ -2,9 +2,18 @@
 
 namespace ExecuteSqlBulk
 {
-    public class PropertiesModel
+    /// <summary>
+    /// 
+    /// </summary>
+    internal class PropertiesModel
     {
-        public PropertyInfo PropertyInfo { get; set; }
-        public string ColumnName { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        internal PropertyInfo PropertyInfo { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        internal string ColumnName { get; set; }
     }
 }

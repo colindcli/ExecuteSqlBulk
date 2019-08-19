@@ -3,9 +3,9 @@ using System.Data.SqlClient;
 
 namespace ExecuteSqlBulk
 {
-    public class SqlBulkInsert : SqlBulkBase
+    internal class SqlBulkInsert : SqlBulkBase
     {
-        public SqlBulkInsert(SqlConnection connection)
+        internal SqlBulkInsert(SqlConnection connection)
         {
             SqlBulk(connection);
         }
@@ -16,7 +16,7 @@ namespace ExecuteSqlBulk
         /// <typeparam name="T"></typeparam>
         /// <param name="destinationTableName"></param>
         /// <param name="data"></param>
-        public void BulkInsert<T>(string destinationTableName, IEnumerable<T> data)
+        internal void BulkInsert<T>(string destinationTableName, IEnumerable<T> data)
         {
             SqlBulkCopy.DestinationTableName = $"[{destinationTableName}]";
             var dt = Common.GetDataTableFromFields(data, SqlBulkCopy);

@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Text;
 
 namespace ExecuteSqlBulk
 {
-    public class SqlBulkDelete : SqlBulkBase
+    internal class SqlBulkDelete : SqlBulkBase
     {
-        public SqlBulkDelete(SqlConnection connection)
+        internal SqlBulkDelete(SqlConnection connection)
         {
             SqlBulk(connection);
         }
@@ -17,7 +17,7 @@ namespace ExecuteSqlBulk
         /// 删除数据表所有数据
         /// </summary>
         /// <param name="destinationTableName"></param>
-        public void BulkDelete(string destinationTableName)
+        internal void BulkDelete(string destinationTableName)
         {
             var cmdTempTable = Connection.CreateCommand();
             cmdTempTable.CommandText = $"TRUNCATE TABLE [{destinationTableName}];";
@@ -30,8 +30,8 @@ namespace ExecuteSqlBulk
         /// <typeparam name="T"></typeparam>
         /// <param name="destinationTableName">表名</param>
         /// <param name="data">数据</param>
-        /// <param name="columnNameToMatch">主键</param>
-        public int BulkDelete<T>(string destinationTableName, IEnumerable<T> data, string columnNameToMatch)
+        /// <param name="columnNameToMatchs">主键</param>
+        internal int BulkDelete<T>(string destinationTableName, IEnumerable<T> data, List<string> columnNameToMatchs)
         {
             var tempTablename = "#" + destinationTableName + "_" + Guid.NewGuid().ToString("N");
             //
@@ -43,7 +43,7 @@ namespace ExecuteSqlBulk
             SqlBulkCopy.BatchSize = 100000;
             SqlBulkCopy.WriteToServer(dt);
             //
-            var row = DeleteTempAndDestination(destinationTableName, tempTablename, columnNameToMatch);
+            var row = DeleteTempAndDestination(destinationTableName, tempTablename, columnNameToMatchs);
             //
             DropTempTable(tempTablename);
 
@@ -58,9 +58,19 @@ namespace ExecuteSqlBulk
         }
 
         private int DeleteTempAndDestination(string destinationTableName, string tempTablename,
-            string columnNameToMatch)
+            List<string> columnNameToMatchs)
         {
-            var deleteSql = $"DELETE [{destinationTableName}] FROM [{destinationTableName}] t1,{tempTablename} t2 WHERE t1.[{columnNameToMatch}]=t2.[{columnNameToMatch}];";
+            var sb = new StringBuilder(columnNameToMatchs.Count > 0 ? " WHERE" : "");
+            for (var i = 0; i < columnNameToMatchs.Count; i++)
+            {
+                if (i > 0)
+                {
+                    sb.Append(" AND");
+                }
+
+                sb.Append($" t1.[{columnNameToMatchs[i]}]=t2.[{columnNameToMatchs[i]}]");
+            }
+            var deleteSql = $"DELETE [{destinationTableName}] FROM [{destinationTableName}] t1,{tempTablename} t2{sb};";
 
             var cmdTempTable = Connection.CreateCommand();
             cmdTempTable.CommandText = deleteSql;
