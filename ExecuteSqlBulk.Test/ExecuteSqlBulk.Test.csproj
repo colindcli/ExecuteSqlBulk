@@ -64,10 +64,14 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ExecuteSqlBulkTest.cs" />
-    <Compile Include="GetBulkTest.cs" />
+    <Compile Include="DeleteListByBulkTest.cs" />
+    <Compile Include="GetListByBulkTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="App_Data\delete_3_result.json" />
+    <None Include="App_Data\delete_2_result.json" />
+    <None Include="App_Data\delete_1_result.json" />
     <None Include="App_Data\bulk_6_result.json" />
     <None Include="App_Data\bulk_5_result.json" />
     <None Include="App_Data\bulk_4_result.json" />

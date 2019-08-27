@@ -12,11 +12,11 @@ using System.Linq;
 namespace ExecuteSqlBulk.Test
 {
     [TestClass]
-    public class GetBulkTest
+    public class GetListByBulkTest
     {
         private static readonly string FilePath = Path.GetFullPath($"{AppDomain.CurrentDomain.BaseDirectory}/../../App_Data/");
 
-        public GetBulkTest()
+        public GetListByBulkTest()
         {
             Setup();
             Excute();

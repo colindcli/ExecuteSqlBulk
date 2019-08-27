@@ -14,6 +14,21 @@ namespace ExecuteSqlBulk
     public static class QueryExtension
     {
         /// <summary>
+        /// 删除数据
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="db"></param>
+        /// <param name="whereConditions"></param>
+        /// <param name="transaction"></param>
+        /// <param name="commandTimeout"></param>
+        public static int DeleteListByBulk<T>(this SqlConnection db, object whereConditions, SqlTransaction transaction = null, int? commandTimeout = null)
+        {
+            var obj = QueryableBuilder.GetListByBulk<T>(whereConditions);
+            var sql = $"DELETE FROM {obj.TableName}{obj.Where};";
+            return db.Execute(sql, whereConditions, transaction, commandTimeout, CommandType.Text);
+        }
+
+        /// <summary>
         /// 获取数据
         /// </summary>
         /// <typeparam name="T"></typeparam>
