@@ -44,6 +44,7 @@ using (var db = new SqlConnection("Data Source=.;Initial Catalog=SqlBulkTestDb;I
 
 For more information, would you see [Example](https://github.com/colindcli/ExecuteSqlBulk/blob/master/ExecuteSqlBulk.Test/ExecuteSqlBulkTest.cs#L248)?
 
+> other query: [Other Query Example](https://github.com/colindcli/ExecuteSqlBulk/tree/master/ExecuteSqlBulk/Query)
 
 ## Performance
 
