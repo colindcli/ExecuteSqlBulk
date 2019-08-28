@@ -22,7 +22,7 @@ public class Page
 
 using (var db = new SqlConnection("Data Source=.;Initial Catalog=SqlBulkTestDb;Integrated Security=True"))
 {
-    //GetList: SELECT TOP 2 * FROM Page ORDER BY PageLink ASC;
+    //GetList: SELECT TOP 2 * FROM Page WHERE PageId=1 OR PageId=2 ORDER BY PageLink ASC;
     var list = db.GetListByBulk<Page>(new
     {
         PageId = new List<int>()
