@@ -25,11 +25,14 @@ using (var db = new SqlConnection("Data Source=.;Initial Catalog=SqlBulkTestDb;I
     //insert
     db.BulkInsert(list);
     
-    //update
+    //update:
     row = db.BulkUpdate(list, p => new { p.PageName, p.PageLink }, p => new { p.PageId });
+    row = db.BulkUpdate(list, p => new { p.PageName, p.PageLink }, p => p.PageId });
+    row = db.BulkUpdate(list, p => p.PageName, p => p.PageId });
     
     //delete
     row = db.BulkDelete(list, p => new { p.PageId });
+    row = db.BulkDelete(list, p => p.PageId);
     
     //delete all
     db.BulkDelete<Page>();
