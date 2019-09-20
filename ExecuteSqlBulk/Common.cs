@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Data;
 using System.Data.SqlClient;
@@ -41,7 +42,21 @@ namespace ExecuteSqlBulk
                 {
                     continue;
                 }
-                dt.Columns.Add(columnName, propertyInfo.PropertyType);
+
+                DataColumn column;
+                if (propertyInfo.PropertyType.IsGenericType && propertyInfo.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
+                {
+                    var typeArray = propertyInfo.PropertyType.GetGenericArguments();
+                    var baseType = typeArray[0];
+                    column = new DataColumn(columnName, baseType);
+                }
+                else
+                {
+                    column = new DataColumn(columnName, propertyInfo.PropertyType);
+                }
+
+                dt.Columns.Add(column);
+
                 sqlBulkCopy.ColumnMappings.Add(columnName, columnName);
                 list.Add(new PropertiesModel()
                 {
@@ -55,7 +70,7 @@ namespace ExecuteSqlBulk
                 var dr = dt.NewRow();
                 foreach (var item in list)
                 {
-                    dr[item.ColumnName] = item.PropertyInfo.GetValue(value, null);
+                    dr[item.ColumnName] = item.PropertyInfo.GetValue(value, null) ?? DBNull.Value;
                 }
                 dt.Rows.Add(dr);
             }

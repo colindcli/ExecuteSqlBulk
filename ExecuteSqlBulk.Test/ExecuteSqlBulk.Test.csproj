@@ -63,12 +63,15 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BulkUpdateTest.cs" />
     <Compile Include="ExecuteSqlBulkTest.cs" />
     <Compile Include="DeleteListByBulkTest.cs" />
     <Compile Include="GetListByBulkTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="App_Data\update_1_result.json" />
+    <None Include="App_Data\update_2_result.json" />
     <None Include="App_Data\delete_3_result.json" />
     <None Include="App_Data\delete_2_result.json" />
     <None Include="App_Data\delete_1_result.json" />

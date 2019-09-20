@@ -1,0 +1,102 @@
+[
+  {
+    "ProductId": 1,
+    "Price": null,
+    "CreateDate": "2019-09-20T00:00:00"
+  },
+  {
+    "ProductId": 2,
+    "Price": 1.00,
+    "CreateDate": "2019-09-20T00:00:00"
+  },
+  {
+    "ProductId": 3,
+    "Price": null,
+    "CreateDate": "2019-09-20T00:00:00"
+  },
+  {
+    "ProductId": 4,
+    "Price": 3.00,
+    "CreateDate": "2019-09-20T00:00:00"
+  },
+  {
+    "ProductId": 5,
+    "Price": null,
+    "CreateDate": "2019-09-20T00:00:00"
+  },
+  {
+    "ProductId": 6,
+    "Price": 5.00,
+    "CreateDate": "2019-09-20T00:00:00"
+  },
+  {
+    "ProductId": 7,
+    "Price": null,
+    "CreateDate": "2019-09-20T00:00:00"
+  },
+  {
+    "ProductId": 8,
+    "Price": 7.00,
+    "CreateDate": "2019-09-20T00:00:00"
+  },
+  {
+    "ProductId": 9,
+    "Price": null,
+    "CreateDate": "2019-09-20T00:00:00"
+  },
+  {
+    "ProductId": 10,
+    "Price": 9.00,
+    "CreateDate": "2019-09-20T00:00:00"
+  },
+  {
+    "ProductId": 11,
+    "Price": null,
+    "CreateDate": "2019-09-20T00:00:00"
+  },
+  {
+    "ProductId": 12,
+    "Price": 11.00,
+    "CreateDate": "2019-09-20T00:00:00"
+  },
+  {
+    "ProductId": 13,
+    "Price": null,
+    "CreateDate": "2019-09-20T00:00:00"
+  },
+  {
+    "ProductId": 14,
+    "Price": 13.00,
+    "CreateDate": "2019-09-20T00:00:00"
+  },
+  {
+    "ProductId": 15,
+    "Price": null,
+    "CreateDate": "2019-09-20T00:00:00"
+  },
+  {
+    "ProductId": 16,
+    "Price": 15.00,
+    "CreateDate": "2019-09-20T00:00:00"
+  },
+  {
+    "ProductId": 17,
+    "Price": null,
+    "CreateDate": "2019-09-20T00:00:00"
+  },
+  {
+    "ProductId": 18,
+    "Price": 17.00,
+    "CreateDate": "2019-09-20T00:00:00"
+  },
+  {
+    "ProductId": 19,
+    "Price": null,
+    "CreateDate": "2019-09-20T00:00:00"
+  },
+  {
+    "ProductId": 20,
+    "Price": 19.00,
+    "CreateDate": "2019-09-20T00:00:00"
+  }
+]
