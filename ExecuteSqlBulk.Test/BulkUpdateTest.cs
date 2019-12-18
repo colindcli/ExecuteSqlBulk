@@ -32,6 +32,8 @@ namespace ExecuteSqlBulk.Test
 
             TestBulkUpdate();
 
+            TestBulkUpdate2();
+
             TestDeleteAll();
         }
 
@@ -80,6 +82,23 @@ namespace ExecuteSqlBulk.Test
             Test("update_2_result.json");
         }
 
+        /// <summary>
+        /// 测试批量更新
+        /// </summary>
+        private void TestBulkUpdate2()
+        {
+            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
+            {
+                var list = db.Query<Product>(@"SELECT * FROM dbo.[Product] p;").ToList();
+                list.ForEach(p =>
+                {
+                    p.Price = 2;
+                });
+                db.BulkUpdate(list, p => new { p.Price }, p => p.ProductId);
+            }
+
+            Test("update_3_result.json");
+        }
 
         /// <summary>
         /// 测试批量删除
