@@ -19,6 +19,18 @@ namespace ExecuteSqlBulk
         public static void BulkInsert<T>(this SqlConnection db, List<T> dt)
         {
             var tableName = typeof(T).Name;
+            BulkInsert(db, tableName, dt);
+        }
+
+        /// <summary>
+        /// Bulk Insert with a given destination name
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="db"></param>
+        /// <param name="tableName"></param>
+        /// <param name="dt"></param>
+        public static void BulkInsert<T>(this SqlConnection db, string tableName, List<T> dt)
+        {
             using (var sbc = new SqlBulkInsert(db))
             {
                 sbc.BulkInsert(tableName, dt);
@@ -38,6 +50,25 @@ namespace ExecuteSqlBulk
         /// <returns>受影响行</returns>
         public static int BulkUpdate<T, TUpdateColumn, TPkColumn>(this SqlConnection db, List<T> dt, Expression<Func<T, TUpdateColumn>> columnUpdateExpression, Expression<Func<T, TPkColumn>> columnPrimaryKeyExpression) where T : new()
         {
+            var tableName = typeof(T).Name;
+            return BulkUpdate<T, TUpdateColumn, TPkColumn>(db, tableName, dt, columnUpdateExpression, columnPrimaryKeyExpression);
+        }
+
+
+        /// <summary>
+        /// 批量更新数据（支持NotMapped属性）
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TUpdateColumn"></typeparam>
+        /// <typeparam name="TPkColumn"></typeparam>
+        /// <param name="db"></param>
+        /// <param name="tableName"></param>
+        /// <param name="dt"></param>
+        /// <param name="columnUpdateExpression">更新列集合</param>
+        /// <param name="columnPrimaryKeyExpression">主键列</param>
+        /// <returns>受影响行</returns>
+        public static int BulkUpdate<T, TUpdateColumn, TPkColumn>(this SqlConnection db, string tableName, List<T> dt, Expression<Func<T, TUpdateColumn>> columnUpdateExpression, Expression<Func<T, TPkColumn>> columnPrimaryKeyExpression) where T : new()
+        {
             if (columnPrimaryKeyExpression == null)
             {
                 throw new Exception("columnPrimaryKeyExpression不能为空");
@@ -46,8 +77,6 @@ namespace ExecuteSqlBulk
             {
                 throw new Exception("columnInputExpression不能为空");
             }
-
-            var tableName = typeof(T).Name;
 
             var pkColumns = GetColumns(columnPrimaryKeyExpression);
             if (pkColumns.Count == 0)
@@ -130,6 +159,16 @@ namespace ExecuteSqlBulk
         public static void BulkDelete<T>(this SqlConnection db)
         {
             var tableName = typeof(T).Name;
+            BulkDelete(db, tableName);
+        }
+
+        /// <summary>
+        /// Bulk Delete with given table name
+        /// </summary>
+        /// <param name="db"></param>
+        /// <param name="tableName"></param>
+        public static void BulkDelete(this SqlConnection db, string tableName)
+        {
             using (var sbc = new SqlBulkDelete(db))
             {
                 sbc.BulkDelete(tableName);
