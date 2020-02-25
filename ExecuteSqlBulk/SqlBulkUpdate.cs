@@ -23,7 +23,7 @@ namespace ExecuteSqlBulk
         /// <param name="updateColumns">更新的列集合</param>
         internal int BulkUpdate<T>(string destinationTableName, IEnumerable<T> data, List<string> pkColumns, List<string> updateColumns)
         {
-            var tempTablename = "#" + destinationTableName + "_" + Guid.NewGuid().ToString("N");
+            var tempTablename = "##" + destinationTableName + "_" + Guid.NewGuid().ToString("N");
             //
             CreateTempTable(destinationTableName, tempTablename);
             //
@@ -32,7 +32,7 @@ namespace ExecuteSqlBulk
             var dt = Common.GetDataTableFromFields(dataAsArray, SqlBulkCopy);
             SqlBulkCopy.BatchSize = 100000;
             SqlBulkCopy.WriteToServer(dt);
-            //
+
             var row = MergeTempAndDestination(destinationTableName, tempTablename, pkColumns, updateColumns);
             //
             DropTempTable(tempTablename);
@@ -68,7 +68,17 @@ namespace ExecuteSqlBulk
                 }
                 updateSql.Append($"Target.[{updateColumns[i]}]=Source.[{updateColumns[i]}]");
             }
-            var mergeSql = $"MERGE INTO [{destinationTableName}] AS Target USING [{tempTablename}] AS Source ON {pkSql} WHEN MATCHED THEN UPDATE SET {updateSql};";
+
+            var mergeSql = $@"
+                        UPDATE Target
+                            SET {updateSql}
+                        FROM [{destinationTableName}] AS Target
+                        INNER JOIN [{tempTablename}] AS Source ON {pkSql} ;
+
+                        -- INSERT [{destinationTableName}]  
+                        --     SELECT * FROM [{tempTablename}] AS Source
+                        -- WHERE NOT EXISTS (SELECT 1 FROM [{destinationTableName}] WHERE {pkSql});
+";
 
             var cmdTempTable = Connection.CreateCommand();
             cmdTempTable.CommandText = mergeSql;

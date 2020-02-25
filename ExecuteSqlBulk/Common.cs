@@ -43,6 +43,10 @@ namespace ExecuteSqlBulk
                     continue;
                 }
 
+                var attr = propertyInfo.GetCustomAttributes(true);
+                if (attr.FirstOrDefault() is ColumnAttribute colAttr)
+                    columnName = colAttr.Name;
+
                 DataColumn column;
                 if (propertyInfo.PropertyType.IsGenericType && propertyInfo.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
                 {
