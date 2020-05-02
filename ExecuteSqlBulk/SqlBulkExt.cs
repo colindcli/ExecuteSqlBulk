@@ -51,7 +51,7 @@ namespace ExecuteSqlBulk
         public static int BulkUpdate<T, TUpdateColumn, TPkColumn>(this SqlConnection db, List<T> dt, Expression<Func<T, TUpdateColumn>> columnUpdateExpression, Expression<Func<T, TPkColumn>> columnPrimaryKeyExpression) where T : new()
         {
             var tableName = typeof(T).Name;
-            return BulkUpdate<T, TUpdateColumn, TPkColumn>(db, tableName, dt, columnUpdateExpression, columnPrimaryKeyExpression);
+            return BulkUpdate(db, tableName, dt, columnUpdateExpression, columnPrimaryKeyExpression);
         }
 
 
