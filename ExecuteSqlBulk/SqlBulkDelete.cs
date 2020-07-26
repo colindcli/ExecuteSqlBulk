@@ -8,9 +8,9 @@ namespace ExecuteSqlBulk
 {
     internal class SqlBulkDelete : SqlBulkBase
     {
-        internal SqlBulkDelete(SqlConnection connection)
+        internal SqlBulkDelete(SqlConnection connection, SqlTransaction tran)
         {
-            SqlBulk(connection);
+            SqlBulk(connection, tran, SqlBulkCopyOptions.KeepIdentity);
         }
 
         /// <summary>

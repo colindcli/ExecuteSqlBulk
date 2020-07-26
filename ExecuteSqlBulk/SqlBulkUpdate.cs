@@ -8,9 +8,9 @@ namespace ExecuteSqlBulk
 {
     internal class SqlBulkUpdate : SqlBulkBase
     {
-        internal SqlBulkUpdate(SqlConnection connection)
+        internal SqlBulkUpdate(SqlConnection connection, SqlTransaction tran)
         {
-            SqlBulk(connection);
+            SqlBulk(connection, tran, SqlBulkCopyOptions.KeepIdentity);
         }
 
         /// <summary>
@@ -31,6 +31,7 @@ namespace ExecuteSqlBulk
             SqlBulkCopy.DestinationTableName = tempTablename;
             var dt = Common.GetDataTableFromFields(dataAsArray, SqlBulkCopy);
             SqlBulkCopy.BatchSize = 100000;
+
             SqlBulkCopy.WriteToServer(dt);
             //
             var row = MergeTempAndDestination(destinationTableName, tempTablename, pkColumns, updateColumns);
@@ -78,7 +79,7 @@ namespace ExecuteSqlBulk
         private void CreateTempTable(string destinationTableName, string tempTablename)
         {
             var cmdTempTable = Connection.CreateCommand();
-            cmdTempTable.CommandText = $"SELECT TOP 0 * INTO [{tempTablename}] FROM [{destinationTableName}]";
+            cmdTempTable.CommandText = $"SELECT TOP 0 * INTO [{tempTablename}] FROM [{destinationTableName}];";
             cmdTempTable.ExecuteNonQuery();
         }
     }

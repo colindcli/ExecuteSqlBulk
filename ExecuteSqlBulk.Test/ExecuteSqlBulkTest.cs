@@ -1,4 +1,5 @@
-﻿using Dapper;
+﻿#if DEBUG
+using Dapper;
 using KellermanSoftware.CompareNetObjects;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
@@ -17,6 +18,9 @@ namespace ExecuteSqlBulk.Test
     {
         private static readonly string FilePath = Path.GetFullPath($"{AppDomain.CurrentDomain.BaseDirectory}/../../App_Data/");
 
+        private static string ConnStringMaster => Config.ConnStringMaster;
+        private static readonly string ConnStringSqlBulkTestDb = Config.ConnStringSqlBulkTestDb;
+
         public ExecuteSqlBulkTest()
         {
             Setup();
@@ -34,6 +38,7 @@ namespace ExecuteSqlBulk.Test
             TestBulkUpdate();
             TestBulkUpdate2();
             TestBulkUpdate3();
+            //TestBulkUpdate4();
 
             TestBlukDelete();
             TestBlukDelete2();
@@ -112,17 +117,17 @@ namespace ExecuteSqlBulk.Test
         {
             using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
             {
-                var list = db.Query<User>(@"SELECT * FROM dbo.[User] p;").ToList();
+                var list = db.Query<User>(@"SELECT * FROM dbo.[User] p;").OrderByDescending(p => Guid.NewGuid()).ToList();
                 list.ForEach(p =>
                 {
                     p.Content = $"{p.Content}_3";
                 });
-                db.BulkUpdate(list, p => p.Content, p => p.UserId);
+                db.BulkUpdate(list, p => new { p.Content }, p => p.UserId);
             }
 
             Test("bulk_4_result.json");
         }
-
+        
         /// <summary>
         /// 测试批量删除
         /// </summary>
@@ -193,9 +198,6 @@ namespace ExecuteSqlBulk.Test
             //Console.WriteLine($"Execute time: {sw.ElapsedMilliseconds} ms, Row: {row}");
         }
 
-        private static readonly string ConnStringMaster = $"Data Source=.;Initial Catalog=Master;Integrated Security=True";
-        private static readonly string ConnStringSqlBulkTestDb = $"Data Source=.;Initial Catalog=SqlBulkTestDb;Integrated Security=True";
-
         private static void Setup()
         {
             using (var db = new SqlConnection(ConnStringMaster))
@@ -243,3 +245,4 @@ CREATE TABLE [dbo].[User](
         }
     }
 }
+#endif

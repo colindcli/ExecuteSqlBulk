@@ -1,4 +1,5 @@
-﻿using Dapper;
+﻿#if DEBUG
+using Dapper;
 using KellermanSoftware.CompareNetObjects;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
@@ -15,6 +16,8 @@ namespace ExecuteSqlBulk.Test
     public class DeleteListByBulkTest
     {
         private static readonly string FilePath = Path.GetFullPath($"{AppDomain.CurrentDomain.BaseDirectory}/../../App_Data/");
+        private static string ConnStringMaster => Config.ConnStringMaster;
+        private static readonly string ConnStringSqlBulkTestDb = Config.ConnStringSqlBulkTestDb;
 
         public DeleteListByBulkTest()
         {
@@ -159,9 +162,6 @@ namespace ExecuteSqlBulk.Test
             sw.Stop();
         }
 
-        private static readonly string ConnStringMaster = $"Data Source=.;Initial Catalog=Master;Integrated Security=True";
-        private static readonly string ConnStringSqlBulkTestDb = $"Data Source=.;Initial Catalog=SqlBulkTestDb;Integrated Security=True";
-
         private static void Setup()
         {
             using (var db = new SqlConnection(ConnStringMaster))
@@ -197,3 +197,4 @@ CREATE TABLE [dbo].[Category](
         }
     }
 }
+#endif

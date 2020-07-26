@@ -29,7 +29,7 @@ namespace ExecuteSqlBulk
         }
 
         /// <summary>
-        /// 获取数据
+        /// 基于字段匹配集合查询数据（获取首条FirstOrDefault，排序OrderBy）
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="db"></param>
@@ -40,6 +40,26 @@ namespace ExecuteSqlBulk
         public static IQuery<T> GetListByBulk<T>(this SqlConnection db, object whereConditions, SqlTransaction transaction = null, int? commandTimeout = null)
         {
             var obj = QueryableBuilder.GetListByBulk<T>(whereConditions);
+            obj.Db = db;
+            obj.Transaction = transaction;
+            obj.CommandTimeout = commandTimeout;
+            obj.WhereConditions = whereConditions;
+            return obj;
+        }
+
+        /// <summary>
+        /// 基于like关键词查询数据 （获取首条FirstOrDefault，排序OrderBy）
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="db"></param>
+        /// <param name="likeColumns">like查询的列。eg:p=>new { p.Name, p.Text }</param>
+        /// <param name="keywords">关键词集合</param>
+        /// <param name="transaction"></param>
+        /// <param name="commandTimeout"></param>
+        /// <returns></returns>
+        public static IQuery<T> GetListByBulkLike<T>(this SqlConnection db, Func<T, object> likeColumns, List<string> keywords, SqlTransaction transaction = null, int? commandTimeout = null) where T : new()
+        {
+            var obj = QueryableBuilder.GetListByBulkLike(likeColumns, keywords, out var whereConditions);
             obj.Db = db;
             obj.Transaction = transaction;
             obj.CommandTimeout = commandTimeout;

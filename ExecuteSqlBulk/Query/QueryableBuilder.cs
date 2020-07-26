@@ -36,7 +36,7 @@ namespace ExecuteSqlBulk
         /// 批量获取列表(依赖Dapper)
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="whereConditions"></param>
+        /// <param name="whereConditions">eg: new { Id =1 } 或 new { Id = new []{1, 2}.ToList() }</param>
         /// <returns></returns>
         internal static IQuery<T> GetListByBulk<T>(object whereConditions)
         {
@@ -48,6 +48,85 @@ namespace ExecuteSqlBulk
                 TableName = $"[{name}]",
                 Where = where
             };
+        }
+
+        /// <summary>
+        /// 批量获取列表(依赖Dapper)
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="likeColumns">eg:p => new { p.Id, p.Name }</param>
+        /// <param name="keywords">搜索关键词集合</param>
+        /// <param name="param">返回参数</param>
+        /// <returns></returns>
+        internal static IQuery<T> GetListByBulkLike<T>(Func<T, object> likeColumns, List<string> keywords, out Dictionary<string, object> param) where T : new()
+        {
+            var name = GetName<T>();
+            var where = GetWhere(likeColumns, keywords, out param);
+
+            return new Queryable<T>()
+            {
+                TableName = $"[{name}]",
+                Where = where
+            };
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="likeColumns"></param>
+        /// <param name="keywords"></param>
+        /// <param name="param"></param>
+        /// <returns></returns>
+        internal static string GetWhere<T>(Func<T, object> likeColumns, List<string> keywords, out Dictionary<string, object> param) where T : new()
+        {
+            param = new Dictionary<string, object>();
+            if (keywords.Count == 0)
+            {
+                return "";
+            }
+
+            var concat = GetQueryColumn(likeColumns);
+            if (string.IsNullOrWhiteSpace(concat))
+            {
+                return "";
+            }
+
+            var sb = new StringBuilder();
+            sb.Append(" WHERE");
+            var list = new List<string>();
+            for (var i = 0; i < keywords.Count; i++)
+            {
+                var name = $"Keyword__{i}";
+                var value = keywords[i];
+                param.Add(name, value);
+                list.Add($" {concat} LIKE '%' + @{name} + '%'");
+            }
+            sb.Append(string.Join(" AND", list));
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// 获取拼接的查询列
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="likeColumns"></param>
+        /// <returns></returns>
+        internal static string GetQueryColumn<T>(Func<T, object> likeColumns) where T : new()
+        {
+            var columnObj = likeColumns.Invoke(new T());
+            var sb = new StringBuilder();
+            var fields = columnObj.GetType().GetProperties();
+            if (fields.Length > 0)
+            {
+                var list = new List<string>();
+                foreach (var field in fields)
+                {
+                    list.Add($"[{field.Name}]");
+                }
+                sb.Append(string.Join(" + ' ' + ", list));
+            }
+            return sb.ToString();
         }
 
         private static string GetWhere(object whereConditions)

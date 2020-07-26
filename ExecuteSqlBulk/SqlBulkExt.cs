@@ -16,10 +16,11 @@ namespace ExecuteSqlBulk
         /// <typeparam name="T"></typeparam>
         /// <param name="db"></param>
         /// <param name="dt"></param>
-        public static void BulkInsert<T>(this SqlConnection db, List<T> dt)
+        /// <param name="tran"></param>
+        public static void BulkInsert<T>(this SqlConnection db, List<T> dt, SqlTransaction tran = null)
         {
             var tableName = typeof(T).Name;
-            BulkInsert(db, tableName, dt);
+            BulkInsert(db, tableName, dt, tran);
         }
 
         /// <summary>
@@ -29,9 +30,10 @@ namespace ExecuteSqlBulk
         /// <param name="db"></param>
         /// <param name="tableName"></param>
         /// <param name="dt"></param>
-        public static void BulkInsert<T>(this SqlConnection db, string tableName, List<T> dt)
+        /// <param name="tran"></param>
+        public static void BulkInsert<T>(this SqlConnection db, string tableName, List<T> dt, SqlTransaction tran = null)
         {
-            using (var sbc = new SqlBulkInsert(db))
+            using (var sbc = new SqlBulkInsert(db, tran))
             {
                 sbc.BulkInsert(tableName, dt);
             }
@@ -47,11 +49,12 @@ namespace ExecuteSqlBulk
         /// <param name="dt"></param>
         /// <param name="columnUpdateExpression">更新列集合</param>
         /// <param name="columnPrimaryKeyExpression">主键列</param>
+        /// <param name="tran"></param>
         /// <returns>受影响行</returns>
-        public static int BulkUpdate<T, TUpdateColumn, TPkColumn>(this SqlConnection db, List<T> dt, Expression<Func<T, TUpdateColumn>> columnUpdateExpression, Expression<Func<T, TPkColumn>> columnPrimaryKeyExpression) where T : new()
+        public static int BulkUpdate<T, TUpdateColumn, TPkColumn>(this SqlConnection db, List<T> dt, Expression<Func<T, TUpdateColumn>> columnUpdateExpression, Expression<Func<T, TPkColumn>> columnPrimaryKeyExpression, SqlTransaction tran = null) where T : new()
         {
             var tableName = typeof(T).Name;
-            return BulkUpdate(db, tableName, dt, columnUpdateExpression, columnPrimaryKeyExpression);
+            return BulkUpdate(db, tableName, dt, columnUpdateExpression, columnPrimaryKeyExpression, tran);
         }
 
 
@@ -66,8 +69,9 @@ namespace ExecuteSqlBulk
         /// <param name="dt"></param>
         /// <param name="columnUpdateExpression">更新列集合</param>
         /// <param name="columnPrimaryKeyExpression">主键列</param>
+        /// <param name="tran"></param>
         /// <returns>受影响行</returns>
-        public static int BulkUpdate<T, TUpdateColumn, TPkColumn>(this SqlConnection db, string tableName, List<T> dt, Expression<Func<T, TUpdateColumn>> columnUpdateExpression, Expression<Func<T, TPkColumn>> columnPrimaryKeyExpression) where T : new()
+        public static int BulkUpdate<T, TUpdateColumn, TPkColumn>(this SqlConnection db, string tableName, List<T> dt, Expression<Func<T, TUpdateColumn>> columnUpdateExpression, Expression<Func<T, TPkColumn>> columnPrimaryKeyExpression, SqlTransaction tran = null) where T : new()
         {
             if (columnPrimaryKeyExpression == null)
             {
@@ -90,7 +94,7 @@ namespace ExecuteSqlBulk
                 throw new Exception("更新列不能为空");
             }
 
-            using (var sbu = new SqlBulkUpdate(db))
+            using (var sbu = new SqlBulkUpdate(db, tran))
             {
                 return sbu.BulkUpdate(tableName, dt, pkColumns, updateColumns);
             }
@@ -130,8 +134,9 @@ namespace ExecuteSqlBulk
         /// <param name="db"></param>
         /// <param name="dt"></param>
         /// <param name="columnPrimaryKeyExpression"></param>
+        /// <param name="tran"></param>
         /// <returns>受影响行</returns>
-        public static int BulkDelete<T, TPk>(this SqlConnection db, List<T> dt, Expression<Func<T, TPk>> columnPrimaryKeyExpression) where T : new()
+        public static int BulkDelete<T, TPk>(this SqlConnection db, List<T> dt, Expression<Func<T, TPk>> columnPrimaryKeyExpression, SqlTransaction tran = null) where T : new()
         {
             if (columnPrimaryKeyExpression == null)
             {
@@ -145,7 +150,7 @@ namespace ExecuteSqlBulk
             }
 
             var tableName = typeof(T).Name;
-            using (var sbc = new SqlBulkDelete(db))
+            using (var sbc = new SqlBulkDelete(db, tran))
             {
                 return sbc.BulkDelete(tableName, dt, pkColumns);
             }
@@ -156,10 +161,11 @@ namespace ExecuteSqlBulk
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="db"></param>
-        public static void BulkDelete<T>(this SqlConnection db)
+        /// <param name="tran"></param>
+        public static void BulkDelete<T>(this SqlConnection db, SqlTransaction tran = null)
         {
             var tableName = typeof(T).Name;
-            BulkDelete(db, tableName);
+            BulkDelete(db, tableName, tran);
         }
 
         /// <summary>
@@ -167,9 +173,10 @@ namespace ExecuteSqlBulk
         /// </summary>
         /// <param name="db"></param>
         /// <param name="tableName"></param>
-        public static void BulkDelete(this SqlConnection db, string tableName)
+        /// <param name="tran"></param>
+        public static void BulkDelete(this SqlConnection db, string tableName, SqlTransaction tran = null)
         {
-            using (var sbc = new SqlBulkDelete(db))
+            using (var sbc = new SqlBulkDelete(db, tran))
             {
                 sbc.BulkDelete(tableName);
             }

@@ -1,4 +1,5 @@
-﻿using Dapper;
+﻿#if DEBUG
+using Dapper;
 using KellermanSoftware.CompareNetObjects;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
@@ -15,6 +16,8 @@ namespace ExecuteSqlBulk.Test
     public class GetListByBulkTest
     {
         private static readonly string FilePath = Path.GetFullPath($"{AppDomain.CurrentDomain.BaseDirectory}/../../App_Data/");
+        private static string ConnStringMaster => Config.ConnStringMaster;
+        private static readonly string ConnStringSqlBulkTestDb = Config.ConnStringSqlBulkTestDb;
 
         public GetListByBulkTest()
         {
@@ -102,7 +105,7 @@ namespace ExecuteSqlBulk.Test
                         4,
                         5
                     }
-                }).OrderBy(p=>p.PageLink).Take(2).ToList();
+                }).OrderBy(p => p.PageLink).Take(2).ToList();
 
                 var json = JsonConvert.SerializeObject(list);
 
@@ -282,6 +285,30 @@ namespace ExecuteSqlBulk.Test
             }
         }
 
+        [TestMethod]
+        public void TestMethod14()
+        {
+            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
+            {
+                var list = new List<Page>();
+
+                var item1 = db.GetListByBulkLike<Page>(p => new { p.PageName, p.PageLink }, new List<string>() { "name_0", "link_0" }).OrderByDescending(p => p.PageLink).ThenByDescending(p => p.PageId).ToList();
+                var item2 = db.GetListByBulkLike<Page>(p => new { p.PageName, p.PageLink }, new List<string>() { "link_8" }).FirstOrDefault();
+
+                list.AddRange(item1);
+                list.Add(item2);
+
+                var json = JsonConvert.SerializeObject(list);
+
+                //
+                var txt = File.ReadAllText($"{FilePath}file_9_result.json");
+                var rows = JsonConvert.DeserializeObject<List<Page>>(txt);
+
+                var b = new CompareLogic().Compare(list, rows);
+                Assert.IsTrue(b.AreEqual);
+            }
+        }
+
         private static readonly int Number = 20;
 
         private static void Excute()
@@ -310,9 +337,6 @@ namespace ExecuteSqlBulk.Test
             sw.Stop();
             //Console.WriteLine($"Execute time: {sw.ElapsedMilliseconds} ms, Row: {row}");
         }
-
-        private static readonly string ConnStringMaster = $"Data Source=.;Initial Catalog=Master;Integrated Security=True";
-        private static readonly string ConnStringSqlBulkTestDb = $"Data Source=.;Initial Catalog=SqlBulkTestDb;Integrated Security=True";
 
         private static void Setup()
         {
@@ -347,5 +371,34 @@ CREATE TABLE [dbo].[Page](
             public string PageName { get; set; }
             public string PageLink { get; set; }
         }
+
+        [TestMethod]
+        public void TestMethod11()
+        {
+            var str = QueryableBuilder.GetQueryColumn<Page>(p => new { p.PageId, p.PageName });
+            Assert.IsTrue(str == "[PageId] + ' ' + [PageName]");
+        }
+
+        [TestMethod]
+        public void TestMethod12()
+        {
+            var str = QueryableBuilder.GetQueryColumn<Page>(p => new { });
+            Assert.IsTrue(str == "");
+        }
+
+        [TestMethod]
+        public void TestMethod13()
+        {
+            var str = QueryableBuilder.GetWhere<Page>(p => new { p.PageName, p.PageLink }, new List<string>()
+            {
+                "test",
+                "test2"
+            }, out var param);
+
+            Assert.IsTrue(str == " WHERE [PageName] + ' ' + [PageLink] LIKE '%' + @Keyword__0 + '%' AND [PageName] + ' ' + [PageLink] LIKE '%' + @Keyword__1 + '%'");
+
+            Assert.IsTrue(param.Count == 2);
+        }
     }
 }
+#endif

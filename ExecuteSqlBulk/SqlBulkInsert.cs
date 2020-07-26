@@ -5,9 +5,14 @@ namespace ExecuteSqlBulk
 {
     internal class SqlBulkInsert : SqlBulkBase
     {
-        internal SqlBulkInsert(SqlConnection connection)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="connection"></param>
+        /// <param name="tran"></param>
+        internal SqlBulkInsert(SqlConnection connection, SqlTransaction tran)
         {
-            SqlBulk(connection);
+            SqlBulk(connection, tran, SqlBulkCopyOptions.Default);
         }
 
         /// <summary>
