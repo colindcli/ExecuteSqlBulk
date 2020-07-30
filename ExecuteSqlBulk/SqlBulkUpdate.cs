@@ -24,12 +24,19 @@ namespace ExecuteSqlBulk
         internal int BulkUpdate<T>(string destinationTableName, IEnumerable<T> data, List<string> pkColumns, List<string> updateColumns)
         {
             var tempTablename = "#" + destinationTableName + "_" + Guid.NewGuid().ToString("N");
+
+            var cols = new List<string>();
+            cols.AddRange(pkColumns);
+            cols.AddRange(updateColumns);
+            var allColumnNames = cols.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+
             //
-            CreateTempTable(destinationTableName, tempTablename);
+            CreateTempTable(destinationTableName, tempTablename, allColumnNames);
+
             //
             var dataAsArray = data as T[] ?? data.ToArray();
             SqlBulkCopy.DestinationTableName = tempTablename;
-            var dt = Common.GetDataTableFromFields(dataAsArray, SqlBulkCopy);
+            var dt = Common.GetDataTableFromFields(dataAsArray, SqlBulkCopy, allColumnNames);
             SqlBulkCopy.BatchSize = 100000;
 
             SqlBulkCopy.WriteToServer(dt);
@@ -43,9 +50,10 @@ namespace ExecuteSqlBulk
 
         private void DropTempTable(string tempTablename)
         {
-            var cmdTempTable = Connection.CreateCommand();
-            cmdTempTable.CommandText = $"DROP TABLE [{tempTablename}]";
-            cmdTempTable.ExecuteNonQuery();
+            var cmd = Connection.CreateCommand();
+            cmd.CommandText = $"DROP TABLE [{tempTablename}]";
+            cmd.Transaction = Tran;
+            cmd.ExecuteNonQuery();
         }
 
         private int MergeTempAndDestination(string destinationTableName, string tempTablename, List<string> pkColumns, List<string> updateColumns)
@@ -71,16 +79,25 @@ namespace ExecuteSqlBulk
             }
             var mergeSql = $"MERGE INTO [{destinationTableName}] AS Target USING [{tempTablename}] AS Source ON {pkSql} WHEN MATCHED THEN UPDATE SET {updateSql};";
 
-            var cmdTempTable = Connection.CreateCommand();
-            cmdTempTable.CommandText = mergeSql;
-            return cmdTempTable.ExecuteNonQuery();
+            var cmd = Connection.CreateCommand();
+            cmd.CommandText = mergeSql;
+            cmd.Transaction = Tran;
+            return cmd.ExecuteNonQuery();
         }
 
-        private void CreateTempTable(string destinationTableName, string tempTablename)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="destinationTableName"></param>
+        /// <param name="tempTablename"></param>
+        /// <param name="colomns"></param>
+        private void CreateTempTable(string destinationTableName, string tempTablename, List<string> colomns)
         {
-            var cmdTempTable = Connection.CreateCommand();
-            cmdTempTable.CommandText = $"SELECT TOP 0 * INTO [{tempTablename}] FROM [{destinationTableName}];";
-            cmdTempTable.ExecuteNonQuery();
+            var str = colomns.Count == 0 ? "*" : string.Join(",", colomns.Select(p => $"[{p}]"));
+            var cmd = Connection.CreateCommand();
+            cmd.CommandText = $"SELECT TOP 0 {str} INTO [{tempTablename}] FROM [{destinationTableName}];";
+            cmd.Transaction = Tran;
+            cmd.ExecuteNonQuery();
         }
     }
 }

@@ -8,6 +8,10 @@ namespace ExecuteSqlBulk
     {
         protected SqlConnection Connection { get; set; }
         protected SqlBulkCopy SqlBulkCopy { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        public SqlTransaction Tran { get; set; }
 
         /// <summary>
         /// </summary>
@@ -21,6 +25,7 @@ namespace ExecuteSqlBulk
             {
                 Connection.Open();
             }
+            Tran = tran;
             SqlBulkCopy = new SqlBulkCopy(connection, option, tran);
         }
 

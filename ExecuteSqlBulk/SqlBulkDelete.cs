@@ -19,9 +19,10 @@ namespace ExecuteSqlBulk
         /// <param name="destinationTableName"></param>
         internal void BulkDelete(string destinationTableName)
         {
-            var cmdTempTable = Connection.CreateCommand();
-            cmdTempTable.CommandText = $"TRUNCATE TABLE [{destinationTableName}];";
-            cmdTempTable.ExecuteNonQuery();
+            var cmd = Connection.CreateCommand();
+            cmd.CommandText = $"TRUNCATE TABLE [{destinationTableName}];";
+            cmd.Transaction = Tran;
+            cmd.ExecuteNonQuery();
         }
 
         /// <summary>
@@ -52,9 +53,10 @@ namespace ExecuteSqlBulk
 
         private void DropTempTable(string tempTablename)
         {
-            var cmdTempTable = Connection.CreateCommand();
-            cmdTempTable.CommandText = $"DROP TABLE [{tempTablename}]";
-            cmdTempTable.ExecuteNonQuery();
+            var cmd = Connection.CreateCommand();
+            cmd.CommandText = $"DROP TABLE [{tempTablename}]";
+            cmd.Transaction = Tran;
+            cmd.ExecuteNonQuery();
         }
 
         private int DeleteTempAndDestination(string destinationTableName, string tempTablename,
@@ -72,16 +74,18 @@ namespace ExecuteSqlBulk
             }
             var deleteSql = $"DELETE [{destinationTableName}] FROM [{destinationTableName}] t1,{tempTablename} t2{sb};";
 
-            var cmdTempTable = Connection.CreateCommand();
-            cmdTempTable.CommandText = deleteSql;
-            return cmdTempTable.ExecuteNonQuery();
+            var cmd = Connection.CreateCommand();
+            cmd.CommandText = deleteSql;
+            cmd.Transaction = Tran;
+            return cmd.ExecuteNonQuery();
         }
 
         private void CreateTempTable(string destinationTableName, string tempTablename)
         {
-            var cmdTempTable = Connection.CreateCommand();
-            cmdTempTable.CommandText = $"SELECT TOP 0 * INTO [{tempTablename}] FROM [{destinationTableName}];";
-            cmdTempTable.ExecuteNonQuery();
+            var cmd = Connection.CreateCommand();
+            cmd.CommandText = $"SELECT TOP 0 * INTO [{tempTablename}] FROM [{destinationTableName}];";
+            cmd.Transaction = Tran;
+            cmd.ExecuteNonQuery();
         }
     }
 }
