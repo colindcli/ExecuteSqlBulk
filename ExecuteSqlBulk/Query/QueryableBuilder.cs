@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 
@@ -43,11 +44,41 @@ namespace ExecuteSqlBulk
             var name = GetName<T>();
             var where = GetWhere(whereConditions);
 
-            return new Queryable<T>()
+            var res = new Queryable<T>()
             {
                 TableName = $"[{name}]",
                 Where = where
             };
+
+            return res;
+        }
+
+        /// <summary>
+        /// 批量获取列表(依赖Dapper)
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="whereConditions">eg: new { Id =1 } 或 new { Id = new []{1, 2}.ToList() }</param>
+        /// <param name="selectColumns">eg: p => p.Id 或 p => new { p.Id, p.Name }</param>
+        /// <returns></returns>
+        internal static IQuery<T> GetListByBulk<T>(object whereConditions, Expression<Func<T, object>> selectColumns) where T : new()
+        {
+            var name = GetName<T>();
+            var where = GetWhere(whereConditions);
+
+            var res = new Queryable<T>()
+            {
+                TableName = $"[{name}]",
+                Where = where
+            };
+
+            //列
+            var cols = selectColumns.GetColumns();
+            if (cols != null && cols.Count > 0)
+            {
+                res.SelectColumns = string.Join(",", cols.Select(p => $"[{p}]"));
+            }
+
+            return res;
         }
 
         /// <summary>

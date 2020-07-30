@@ -40,6 +40,10 @@ namespace ExecuteSqlBulk
         /// 
         /// </summary>
         string OrderBy { get; set; }
+        /// <summary>
+        /// 
+        /// </summary>
+        string SelectColumns { get; set; }
     }
 
     /// <summary>
@@ -64,5 +68,6 @@ namespace ExecuteSqlBulk
         public string TableName { get; set; }
         public string Where { get; set; }
         public string OrderBy { get; set; }
+        public string SelectColumns { get; set; }
     }
 }

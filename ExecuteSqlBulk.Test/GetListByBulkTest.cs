@@ -186,6 +186,24 @@ namespace ExecuteSqlBulk.Test
         }
 
         [TestMethod]
+        public void TestMethod5A()
+        {
+            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
+            {
+                var list = db.GetListByBulk<Page>(null, p => new { p.PageName, p.PageLink }).ToList();
+
+                var json = JsonConvert.SerializeObject(list);
+
+                //
+                var txt = File.ReadAllText($"{FilePath}file_3A_result.json");
+                var rows = JsonConvert.DeserializeObject<List<Page>>(txt);
+
+                var b = new CompareLogic().Compare(list, rows);
+                Assert.IsTrue(b.AreEqual);
+            }
+        }
+
+        [TestMethod]
         public void TestMethod6()
         {
             using (var db = new SqlConnection(ConnStringSqlBulkTestDb))

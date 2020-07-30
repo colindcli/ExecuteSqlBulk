@@ -21,7 +21,7 @@ namespace ExecuteSqlBulk
         /// <param name="whereConditions"></param>
         /// <param name="transaction"></param>
         /// <param name="commandTimeout"></param>
-        public static int DeleteListByBulk<T>(this SqlConnection db, object whereConditions, SqlTransaction transaction = null, int? commandTimeout = null)
+        public static int DeleteListByBulk<T>(this SqlConnection db, object whereConditions, SqlTransaction transaction = null, int? commandTimeout = null) where T : new()
         {
             var obj = QueryableBuilder.GetListByBulk<T>(whereConditions);
             var sql = $"DELETE FROM {obj.TableName}{obj.Where};";
@@ -40,6 +40,26 @@ namespace ExecuteSqlBulk
         public static IQuery<T> GetListByBulk<T>(this SqlConnection db, object whereConditions, SqlTransaction transaction = null, int? commandTimeout = null)
         {
             var obj = QueryableBuilder.GetListByBulk<T>(whereConditions);
+            obj.Db = db;
+            obj.Transaction = transaction;
+            obj.CommandTimeout = commandTimeout;
+            obj.WhereConditions = whereConditions;
+            return obj;
+        }
+
+        /// <summary>
+        /// 基于字段匹配集合查询数据（获取首条FirstOrDefault，排序OrderBy）
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="db"></param>
+        /// <param name="whereConditions"></param>
+        /// <param name="selectColumns"></param>
+        /// <param name="transaction"></param>
+        /// <param name="commandTimeout"></param>
+        /// <returns></returns>
+        public static IQuery<T> GetListByBulk<T>(this SqlConnection db, object whereConditions, Expression<Func<T, object>> selectColumns, SqlTransaction transaction = null, int? commandTimeout = null) where T : new()
+        {
+            var obj = QueryableBuilder.GetListByBulk(whereConditions, selectColumns);
             obj.Db = db;
             obj.Transaction = transaction;
             obj.CommandTimeout = commandTimeout;
@@ -75,7 +95,8 @@ namespace ExecuteSqlBulk
         /// <returns></returns>
         public static List<T> ToList<T>(this IQuery<T> obj)
         {
-            var sql = $"SELECT{(obj.Top >= 0 ? $" TOP ({obj.Top})" : "")} * FROM {obj.TableName} {obj.Where} {obj.OrderBy};";
+            var col = string.IsNullOrWhiteSpace(obj.SelectColumns) ? "*" : obj.SelectColumns;
+            var sql = $"SELECT{(obj.Top >= 0 ? $" TOP ({obj.Top})" : "")} {col} FROM {obj.TableName} {obj.Where} {obj.OrderBy};";
             return obj.Db.Query<T>(sql, obj.WhereConditions, transaction: obj.Transaction, commandTimeout: obj.CommandTimeout, commandType: CommandType.Text).ToList();
         }
 
@@ -88,7 +109,8 @@ namespace ExecuteSqlBulk
         public static T FirstOrDefault<T>(this IQuery<T> obj)
         {
             obj.Top = 1;
-            var sql = $"SELECT{(obj.Top >= 0 ? $" TOP ({obj.Top})" : "")} * FROM {obj.TableName} {obj.Where} {obj.OrderBy};";
+            var col = string.IsNullOrWhiteSpace(obj.SelectColumns) ? "*" : obj.SelectColumns;
+            var sql = $"SELECT{(obj.Top >= 0 ? $" TOP ({obj.Top})" : "")} {col} FROM {obj.TableName} {obj.Where} {obj.OrderBy};";
             return obj.Db.Query<T>(sql, obj.WhereConditions, transaction: obj.Transaction, commandTimeout: obj.CommandTimeout, commandType: CommandType.Text).FirstOrDefault();
         }
 

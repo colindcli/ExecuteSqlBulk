@@ -107,7 +107,7 @@ namespace ExecuteSqlBulk
         /// <typeparam name="TColumn"></typeparam>
         /// <param name="expression"></param>
         /// <returns></returns>
-        private static List<string> GetColumns<T, TColumn>(Expression<Func<T, TColumn>> expression) where T : new()
+        internal static List<string> GetColumns<T, TColumn>(this Expression<Func<T, TColumn>> expression) where T : new()
         {
             var columns = new List<string>();
             if (expression.Body is MemberExpression body)

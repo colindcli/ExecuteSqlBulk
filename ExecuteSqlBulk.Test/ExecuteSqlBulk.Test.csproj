@@ -71,6 +71,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="App_Data\file_3A_result.json" />
     <None Include="App_Data\file_9_result.json" />
     <None Include="App_Data\update_1_result.json" />
     <None Include="App_Data\update_3_result.json" />
