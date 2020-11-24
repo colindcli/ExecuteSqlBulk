@@ -1,27 +1,28 @@
-﻿#if DEBUG
+﻿
+#if DEBUG
 using Dapper;
 using KellermanSoftware.CompareNetObjects;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using MySqlConnector;
 
 namespace ExecuteSqlBulk.Test
 {
     [TestClass]
-    public class GetListByBulkTest
+    public class GetListByBulkForMySql
     {
         private static readonly string FilePath = Path.GetFullPath($"{AppDomain.CurrentDomain.BaseDirectory}/../../../App_Data/");
-        private static string ConnStringMaster => Config.ConnStringMaster;
-        private static readonly string ConnStringSqlBulkTestDb = Config.ConnStringSqlBulkTestDb;
+        private static string ConnStringMasterMysql => Config.ConnStringMasterMysql;
+        private static readonly string ConnStringSqlBulkTestDbMysql = Config.ConnStringSqlBulkTestDbMysql;
 
-        public GetListByBulkTest()
+        public GetListByBulkForMySql()
         {
-            QueryConfig.SetDialect(Dialect.SqlServer);
+            QueryConfig.SetDialect(Dialect.MySql);
 
             Setup();
             Excute();
@@ -30,17 +31,32 @@ namespace ExecuteSqlBulk.Test
         [TestMethod]
         public void TestMethod1()
         {
-            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
+            using (var db = new MySqlConnection(ConnStringSqlBulkTestDbMysql))
             {
-                Assert.IsTrue(db.Query<int>(@"SELECT COUNT(1) FROM dbo.Page p;").FirstOrDefault() == Number);
+                db.Open();
+                var num = db.Query<int>(@"SELECT COUNT(1) FROM Page p;").FirstOrDefault();
+                Assert.IsTrue(num == Number);
+            }
+        }
+
+        [TestMethod]
+        public void TestMethod1A()
+        {
+            using (var db = new MySqlConnection(ConnStringSqlBulkTestDbMysql))
+            {
+                db.Open();
+                var li = new[] { 1, 2, 3, 4, 5 };
+                var num = db.Query<int>(@"SELECT * FROM Page p where PageId IN @PageId;", new { PageId = li }).ToList().Count;
+                Assert.IsTrue(num == 5, num.ToString());
             }
         }
 
         [TestMethod]
         public void TestMethod2()
         {
-            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
+            using (var db = new MySqlConnection(ConnStringSqlBulkTestDbMysql))
             {
+                db.Open();
                 var list = db.GetListByBulk<Page>(new
                 {
                     PageId = new List<int>()
@@ -67,8 +83,9 @@ namespace ExecuteSqlBulk.Test
         [TestMethod]
         public void TestMethod3()
         {
-            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
+            using (var db = new MySqlConnection(ConnStringSqlBulkTestDbMysql))
             {
+                db.Open();
                 var list = db.GetListByBulk<Page>(new
                 {
                     PageId = new List<int>()
@@ -95,8 +112,9 @@ namespace ExecuteSqlBulk.Test
         [TestMethod]
         public void TestMethod3A()
         {
-            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
+            using (var db = new MySqlConnection(ConnStringSqlBulkTestDbMysql))
             {
+                db.Open();
                 var list = db.GetListByBulk<Page>(new
                 {
                     PageId = new List<int>()
@@ -123,8 +141,9 @@ namespace ExecuteSqlBulk.Test
         [TestMethod]
         public void TestMethod3B()
         {
-            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
+            using (var db = new MySqlConnection(ConnStringSqlBulkTestDbMysql))
             {
+                db.Open();
                 var list = db.GetListByBulk<Page>(new
                 {
                     PageId = new List<int>()
@@ -151,8 +170,9 @@ namespace ExecuteSqlBulk.Test
         [TestMethod]
         public void TestMethod4()
         {
-            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
+            using (var db = new MySqlConnection(ConnStringSqlBulkTestDbMysql))
             {
+                db.Open();
                 var list = db.GetListByBulk<Page>(new
                 {
 
@@ -172,8 +192,9 @@ namespace ExecuteSqlBulk.Test
         [TestMethod]
         public void TestMethod5()
         {
-            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
+            using (var db = new MySqlConnection(ConnStringSqlBulkTestDbMysql))
             {
+                db.Open();
                 var list = db.GetListByBulk<Page>(null).ToList();
 
                 var json = JsonConvert.SerializeObject(list);
@@ -190,8 +211,9 @@ namespace ExecuteSqlBulk.Test
         [TestMethod]
         public void TestMethod5A()
         {
-            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
+            using (var db = new MySqlConnection(ConnStringSqlBulkTestDbMysql))
             {
+                db.Open();
                 var list = db.GetListByBulk<Page>(null, p => new { p.PageName, p.PageLink }).ToList();
 
                 var json = JsonConvert.SerializeObject(list);
@@ -208,8 +230,9 @@ namespace ExecuteSqlBulk.Test
         [TestMethod]
         public void TestMethod6()
         {
-            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
+            using (var db = new MySqlConnection(ConnStringSqlBulkTestDbMysql))
             {
+                db.Open();
                 var list = db.GetListByBulk<Page>(null).OrderBy(p => p.PageLink).ThenBy(p => p.PageName).ToList();
 
                 var json = JsonConvert.SerializeObject(list);
@@ -226,8 +249,9 @@ namespace ExecuteSqlBulk.Test
         [TestMethod]
         public void TestMethod7()
         {
-            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
+            using (var db = new MySqlConnection(ConnStringSqlBulkTestDbMysql))
             {
+                db.Open();
                 var list = db.GetListByBulk<Page>(null).OrderBy(p => p.PageLink).ThenByDescending(p => p.PageName).ToList();
 
                 var json = JsonConvert.SerializeObject(list);
@@ -244,8 +268,9 @@ namespace ExecuteSqlBulk.Test
         [TestMethod]
         public void TestMethod8()
         {
-            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
+            using (var db = new MySqlConnection(ConnStringSqlBulkTestDbMysql))
             {
+                db.Open();
                 var list = db.GetListByBulk<Page>(null).OrderByDescending(p => p.PageLink).ThenBy(p => p.PageName).ToList();
 
                 var json = JsonConvert.SerializeObject(list);
@@ -262,8 +287,9 @@ namespace ExecuteSqlBulk.Test
         [TestMethod]
         public void TestMethod9()
         {
-            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
+            using (var db = new MySqlConnection(ConnStringSqlBulkTestDbMysql))
             {
+                db.Open();
                 var list = db.GetListByBulk<Page>(null).OrderByDescending(p => p.PageLink).ThenByDescending(p => p.PageName).ToList();
 
                 var json = JsonConvert.SerializeObject(list);
@@ -280,8 +306,9 @@ namespace ExecuteSqlBulk.Test
         [TestMethod]
         public void TestMethod10()
         {
-            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
+            using (var db = new MySqlConnection(ConnStringSqlBulkTestDbMysql))
             {
+                db.Open();
                 var list = new List<Page>();
 
                 var item1 = db.GetListByBulk<Page>(null).OrderByDescending(p => p.PageLink).ThenBy(p => p.PageName).FirstOrDefault();
@@ -308,8 +335,9 @@ namespace ExecuteSqlBulk.Test
         [TestMethod]
         public void TestMethod14()
         {
-            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
+            using (var db = new MySqlConnection(ConnStringSqlBulkTestDbMysql))
             {
+                db.Open();
                 var list = new List<Page>();
 
                 var item1 = db.GetListByBulkLike<Page>(p => new { p.PageName, p.PageLink }, new List<string>() { "name_0", "link_0" }).OrderByDescending(p => p.PageLink).ThenByDescending(p => p.PageId).ToList();
@@ -346,9 +374,16 @@ namespace ExecuteSqlBulk.Test
 
             var sw = new Stopwatch();
             sw.Start();
-            using (var db = new SqlConnection(ConnStringSqlBulkTestDb))
+            using (var db = new MySqlConnection(ConnStringSqlBulkTestDbMysql))
             {
-                db.BulkInsert(list);
+                db.Open();
+                var tran = db.BeginTransaction();
+                foreach (var item in list)
+                {
+                    db.Execute("insert into Page(PageId, PageLink, PageName) value('" + item.PageId + "', '" + item.PageLink + "', '" + item.PageName + "');", null, tran);
+                }
+                tran.Commit();
+
                 //row = db.BulkUpdate(list, p => new { p.PageName, p.PageLink }, p => new { p.PageId });
                 //row = db.BulkDelete(list, p => new { p.PageId });
                 //db.BulkDelete<Page>();
@@ -360,27 +395,25 @@ namespace ExecuteSqlBulk.Test
 
         private static void Setup()
         {
-            using (var db = new SqlConnection(ConnStringMaster))
+            using (var db = new MySqlConnection(ConnStringMasterMysql))
             {
                 db.Open();
-                db.Execute(@"IF(NOT EXISTS(SELECT * FROM sys.databases d WHERE d.name='SqlBulkTestDb')) CREATE DATABASE SqlBulkTestDb;");
+                db.Execute(@"drop database if exists `SqlBulkTestDb`;create DATABASE SqlBulkTestDb;");
             }
 
-            using (var connection = new SqlConnection(ConnStringSqlBulkTestDb))
+            using (var connection = new MySqlConnection(ConnStringSqlBulkTestDbMysql))
             {
                 connection.Open();
                 connection.Execute(@"
-IF(NOT EXISTS(SELECT * FROM sys.objects o WHERE o.name='Page'))
-CREATE TABLE [dbo].[Page](
-    [PageId] [INT] NOT NULL,
-    [PageName] [VARCHAR](50) NULL,
-    [PageLink] [VARCHAR](50) NULL,
- CONSTRAINT [PK_Page_1] PRIMARY KEY CLUSTERED 
-(
-    [PageId] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
-) ON [PRIMARY];");
-                connection.Execute(@"TRUNCATE TABLE dbo.Page;");
+SET FOREIGN_KEY_CHECKS=0;
+DROP TABLE IF EXISTS `Page`;
+CREATE TABLE `Page` (
+  `PageId` int(11) NOT NULL,
+  `PageName` varchar(50) DEFAULT NULL,
+  `PageLink` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`PageId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;");
+                //connection.Execute(@"TRUNCATE TABLE Page;");
             }
             //Console.WriteLine("Created database");
         }
@@ -396,7 +429,18 @@ CREATE TABLE [dbo].[Page](
         public void TestMethod11()
         {
             var str = QueryableBuilder.GetQueryColumn<Page>(p => new { p.PageId, p.PageName });
-            Assert.IsTrue(str == "[PageId] + ' ' + [PageName]");
+            if (QueryConfig.DialectServer == Dialect.SqlServer)
+            {
+                Assert.IsTrue(str == "[PageId] + ' ' + [PageName]");
+            }
+            else if (QueryConfig.DialectServer == Dialect.MySql)
+            {
+                Assert.IsTrue(str == "CONCAT(`PageId` , ' ' , `PageName`)");
+            }
+            else
+            {
+                Assert.IsTrue(false);
+            }
         }
 
         [TestMethod]
@@ -415,7 +459,7 @@ CREATE TABLE [dbo].[Page](
                 "test2"
             }, out var param);
 
-            Assert.IsTrue(str == " WHERE [PageName] + ' ' + [PageLink] LIKE '%' + @Keyword__0 + '%' AND [PageName] + ' ' + [PageLink] LIKE '%' + @Keyword__1 + '%'");
+            Assert.IsTrue(str == " WHERE CONCAT(`PageName` , ' ' , `PageLink`) LIKE CONCAT('%', @Keyword__0, '%') AND CONCAT(`PageName` , ' ' , `PageLink`) LIKE CONCAT('%', @Keyword__1, '%')");
 
             Assert.IsTrue(param.Count == 2);
         }

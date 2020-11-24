@@ -15,7 +15,7 @@ namespace ExecuteSqlBulk.Test
     [TestClass]
     public class DeleteListByBulkTest
     {
-        private static readonly string FilePath = Path.GetFullPath($"{AppDomain.CurrentDomain.BaseDirectory}/../../App_Data/");
+        private static readonly string FilePath = Path.GetFullPath($"{AppDomain.CurrentDomain.BaseDirectory}/../../../App_Data/");
         private static string ConnStringMaster => Config.ConnStringMaster;
         private static readonly string ConnStringSqlBulkTestDb = Config.ConnStringSqlBulkTestDb;
 
@@ -119,7 +119,7 @@ namespace ExecuteSqlBulk.Test
 
         private void Test4(SqlConnection db)
         {
-            db.DeleteListByBulk<Category>(new {});
+            db.DeleteListByBulk<Category>(new { });
 
             var list = db.GetListByBulk<Category>(null).OrderBy(p => p.CategoryId).ToList();
 
@@ -176,12 +176,12 @@ namespace ExecuteSqlBulk.Test
                 connection.Execute(@"
 IF(NOT EXISTS(SELECT * FROM sys.objects o WHERE o.name='Category'))
 CREATE TABLE [dbo].[Category](
-	[CategoryId] [INT] NOT NULL,
-	[CategoryName] [VARCHAR](50) NULL,
-	[CategoryLink] [VARCHAR](50) NULL,
+    [CategoryId] [INT] NOT NULL,
+    [CategoryName] [VARCHAR](50) NULL,
+    [CategoryLink] [VARCHAR](50) NULL,
  CONSTRAINT [PK_Category_1] PRIMARY KEY CLUSTERED 
 (
-	[CategoryId] ASC
+    [CategoryId] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 ) ON [PRIMARY];");
                 connection.Execute(@"TRUNCATE TABLE dbo.Category;");

@@ -7,6 +7,9 @@ using System.Text;
 
 namespace ExecuteSqlBulk
 {
+    /// <summary>
+    /// 
+    /// </summary>
     internal class QueryableBuilder
     {
         private static Dictionary<Type, string> TypeNames { get; } = new Dictionary<Type, string>();
@@ -18,7 +21,7 @@ namespace ExecuteSqlBulk
             var b = TypeNames.TryGetValue(type, out var name);
             if (b)
             {
-                return name;
+                return name.Ns();
             }
 
             var value = type.Name;
@@ -30,7 +33,7 @@ namespace ExecuteSqlBulk
                     TypeNames.Add(type, value);
                 }
             }
-            return value;
+            return value.Ns();
         }
 
         /// <summary>
@@ -46,7 +49,7 @@ namespace ExecuteSqlBulk
 
             var res = new Queryable<T>()
             {
-                TableName = $"[{name}]",
+                TableName = name,
                 Where = where
             };
 
@@ -67,7 +70,7 @@ namespace ExecuteSqlBulk
 
             var res = new Queryable<T>()
             {
-                TableName = $"[{name}]",
+                TableName = name,
                 Where = where
             };
 
@@ -75,7 +78,14 @@ namespace ExecuteSqlBulk
             var cols = selectColumns.GetColumns();
             if (cols != null && cols.Count > 0)
             {
-                res.SelectColumns = string.Join(",", cols.Select(p => $"[{p}]"));
+                if (QueryConfig.DialectServer == Dialect.SqlServer)
+                {
+                    res.SelectColumns = string.Join(",", cols.Select(p => $"[{p}]"));
+                }
+                else
+                {
+                    res.SelectColumns = string.Join(",", cols.Select(p => $"`{p}`"));
+                }
             }
 
             return res;
@@ -96,7 +106,7 @@ namespace ExecuteSqlBulk
 
             return new Queryable<T>()
             {
-                TableName = $"[{name}]",
+                TableName = name,
                 Where = where
             };
         }
@@ -131,7 +141,14 @@ namespace ExecuteSqlBulk
                 var name = $"Keyword__{i}";
                 var value = keywords[i];
                 param.Add(name, value);
-                list.Add($" {concat} LIKE '%' + @{name} + '%'");
+                if (QueryConfig.DialectServer == Dialect.SqlServer)
+                {
+                    list.Add($" {concat} LIKE '%' + @{name} + '%'");
+                }
+                else if (QueryConfig.DialectServer == Dialect.MySql)
+                {
+                    list.Add($" {concat} LIKE CONCAT('%', @{name}, '%')");
+                }
             }
             sb.Append(string.Join(" AND", list));
             return sb.ToString();
@@ -153,9 +170,16 @@ namespace ExecuteSqlBulk
                 var list = new List<string>();
                 foreach (var field in fields)
                 {
-                    list.Add($"[{field.Name}]");
+                    list.Add(field.Name.Ns());
                 }
-                sb.Append(string.Join(" + ' ' + ", list));
+                if (QueryConfig.DialectServer == Dialect.SqlServer)
+                {
+                    sb.Append(string.Join(" + ' ' + ", list));
+                }
+                else if (QueryConfig.DialectServer == Dialect.MySql)
+                {
+                    sb.Append($"CONCAT({string.Join(" , ' ' , ", list)})");
+                }
             }
             return sb.ToString();
         }
@@ -195,13 +219,13 @@ namespace ExecuteSqlBulk
                     switch (fieldValue)
                     {
                         case string _:
-                            sb.Append($" [{fieldName}]=@{fieldName}");
+                            sb.Append($" {fieldName.Ns()}=@{fieldName}");
                             break;
                         case IEnumerable _:
-                            sb.Append($" [{fieldName}] IN @{fieldName}");
+                            sb.Append($" {fieldName.Ns()} IN @{fieldName}");
                             break;
                         default:
-                            sb.Append($" [{fieldName}]=@{fieldName}");
+                            sb.Append($" {fieldName.Ns()}=@{fieldName}");
                             break;
                     }
                 }

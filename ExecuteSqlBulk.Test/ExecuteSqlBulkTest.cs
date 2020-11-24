@@ -16,7 +16,7 @@ namespace ExecuteSqlBulk.Test
     [TestClass]
     public class ExecuteSqlBulkTest
     {
-        private static readonly string FilePath = Path.GetFullPath($"{AppDomain.CurrentDomain.BaseDirectory}/../../App_Data/");
+        private static readonly string FilePath = Path.GetFullPath($"{AppDomain.CurrentDomain.BaseDirectory}/../../../App_Data/");
 
         private static string ConnStringMaster => Config.ConnStringMaster;
         private static readonly string ConnStringSqlBulkTestDb = Config.ConnStringSqlBulkTestDb;
@@ -127,7 +127,7 @@ namespace ExecuteSqlBulk.Test
 
             Test("bulk_4_result.json");
         }
-        
+
         /// <summary>
         /// 测试批量删除
         /// </summary>
@@ -212,12 +212,12 @@ namespace ExecuteSqlBulk.Test
                 connection.Execute(@"
 IF(NOT EXISTS(SELECT * FROM sys.objects o WHERE o.name='User'))
 CREATE TABLE [dbo].[User](
-	[UserId] [INT] NOT NULL,
-	[UserName] [VARCHAR](50) NULL,
-	[Content] [VARCHAR](50) NULL,
+    [UserId] [INT] NOT NULL,
+    [UserName] [VARCHAR](50) NULL,
+    [Content] [VARCHAR](50) NULL,
  CONSTRAINT [PK_User_1] PRIMARY KEY CLUSTERED 
 (
-	[UserId] ASC
+    [UserId] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
 ) ON [PRIMARY];");
                 connection.Execute(@"TRUNCATE TABLE dbo.[User];");

@@ -1,4 +1,4 @@
-﻿using System.Data.SqlClient;
+﻿using System.Data;
 
 namespace ExecuteSqlBulk
 {
@@ -11,11 +11,11 @@ namespace ExecuteSqlBulk
         /// <summary>
         /// 
         /// </summary>
-        SqlConnection Db { get; set; }
+        IDbConnection Db { get; set; }
         /// <summary>
         /// 
         /// </summary>
-        SqlTransaction Transaction { get; set; }
+        IDbTransaction Transaction { get; set; }
         /// <summary>
         /// 
         /// </summary>
@@ -60,8 +60,8 @@ namespace ExecuteSqlBulk
     /// <typeparam name="T"></typeparam>
     internal class Queryable<T> : IOrderQuery<T>
     {
-        public SqlConnection Db { get; set; }
-        public SqlTransaction Transaction { get; set; }
+        public IDbConnection Db { get; set; }
+        public IDbTransaction Transaction { get; set; }
         public int? CommandTimeout { get; set; }
         public object WhereConditions { get; set; }
         public int Top { get; set; } = -1;

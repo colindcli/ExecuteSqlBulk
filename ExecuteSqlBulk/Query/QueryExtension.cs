@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -21,7 +20,7 @@ namespace ExecuteSqlBulk
         /// <param name="whereConditions"></param>
         /// <param name="transaction"></param>
         /// <param name="commandTimeout"></param>
-        public static int DeleteListByBulk<T>(this SqlConnection db, object whereConditions, SqlTransaction transaction = null, int? commandTimeout = null) where T : new()
+        public static int DeleteListByBulk<T>(this IDbConnection db, object whereConditions, IDbTransaction transaction = null, int? commandTimeout = null) where T : new()
         {
             var obj = QueryableBuilder.GetListByBulk<T>(whereConditions);
             var sql = $"DELETE FROM {obj.TableName}{obj.Where};";
@@ -37,7 +36,7 @@ namespace ExecuteSqlBulk
         /// <param name="transaction"></param>
         /// <param name="commandTimeout"></param>
         /// <returns></returns>
-        public static IQuery<T> GetListByBulk<T>(this SqlConnection db, object whereConditions, SqlTransaction transaction = null, int? commandTimeout = null)
+        public static IQuery<T> GetListByBulk<T>(this IDbConnection db, object whereConditions, IDbTransaction transaction = null, int? commandTimeout = null)
         {
             var obj = QueryableBuilder.GetListByBulk<T>(whereConditions);
             obj.Db = db;
@@ -57,7 +56,7 @@ namespace ExecuteSqlBulk
         /// <param name="transaction"></param>
         /// <param name="commandTimeout"></param>
         /// <returns></returns>
-        public static IQuery<T> GetListByBulk<T>(this SqlConnection db, object whereConditions, Expression<Func<T, object>> selectColumns, SqlTransaction transaction = null, int? commandTimeout = null) where T : new()
+        public static IQuery<T> GetListByBulk<T>(this IDbConnection db, object whereConditions, Expression<Func<T, object>> selectColumns, IDbTransaction transaction = null, int? commandTimeout = null) where T : new()
         {
             var obj = QueryableBuilder.GetListByBulk(whereConditions, selectColumns);
             obj.Db = db;
@@ -77,7 +76,7 @@ namespace ExecuteSqlBulk
         /// <param name="transaction"></param>
         /// <param name="commandTimeout"></param>
         /// <returns></returns>
-        public static IQuery<T> GetListByBulkLike<T>(this SqlConnection db, Func<T, object> likeColumns, List<string> keywords, SqlTransaction transaction = null, int? commandTimeout = null) where T : new()
+        public static IQuery<T> GetListByBulkLike<T>(this IDbConnection db, Func<T, object> likeColumns, List<string> keywords, IDbTransaction transaction = null, int? commandTimeout = null) where T : new()
         {
             var obj = QueryableBuilder.GetListByBulkLike(likeColumns, keywords, out var whereConditions);
             obj.Db = db;
@@ -96,7 +95,18 @@ namespace ExecuteSqlBulk
         public static List<T> ToList<T>(this IQuery<T> obj)
         {
             var col = string.IsNullOrWhiteSpace(obj.SelectColumns) ? "*" : obj.SelectColumns;
-            var sql = $"SELECT{(obj.Top >= 0 ? $" TOP ({obj.Top})" : "")} {col} FROM {obj.TableName} {obj.Where} {obj.OrderBy};";
+            var sql = string.Empty;
+            if (QueryConfig.DialectServer == Dialect.SqlServer)
+            {
+                sql = $"SELECT{(obj.Top >= 0 ? $" TOP ({obj.Top})" : "")} {col} FROM {obj.TableName} {obj.Where} {obj.OrderBy};";
+            }
+            else if (QueryConfig.DialectServer == Dialect.MySql)
+            {
+                sql = obj.Top > 0
+                    ? $"SELECT {col} FROM {obj.TableName} {obj.Where} {obj.OrderBy} LIMIT 0,{obj.Top};"
+                    : $"SELECT {col} FROM {obj.TableName} {obj.Where} {obj.OrderBy};";
+            }
+
             return obj.Db.Query<T>(sql, obj.WhereConditions, transaction: obj.Transaction, commandTimeout: obj.CommandTimeout, commandType: CommandType.Text).ToList();
         }
 
@@ -110,7 +120,22 @@ namespace ExecuteSqlBulk
         {
             obj.Top = 1;
             var col = string.IsNullOrWhiteSpace(obj.SelectColumns) ? "*" : obj.SelectColumns;
-            var sql = $"SELECT{(obj.Top >= 0 ? $" TOP ({obj.Top})" : "")} {col} FROM {obj.TableName} {obj.Where} {obj.OrderBy};";
+            var sql = string.Empty;
+            if (QueryConfig.DialectServer == Dialect.SqlServer)
+            {
+                sql = $"SELECT{(obj.Top >= 0 ? $" TOP ({obj.Top})" : "")} {col} FROM {obj.TableName} {obj.Where} {obj.OrderBy};";
+            }
+            else if (QueryConfig.DialectServer == Dialect.MySql)
+            {
+                if (obj.Top > 0)
+                {
+                    sql = $"SELECT {col} FROM {obj.TableName} {obj.Where} {obj.OrderBy} LIMIT 0,{obj.Top};";
+                }
+                else
+                {
+                    sql = $"SELECT {col} FROM {obj.TableName} {obj.Where} {obj.OrderBy};";
+                }
+            }
             return obj.Db.Query<T>(sql, obj.WhereConditions, transaction: obj.Transaction, commandTimeout: obj.CommandTimeout, commandType: CommandType.Text).FirstOrDefault();
         }
 
@@ -181,6 +206,26 @@ namespace ExecuteSqlBulk
         {
             obj.OrderBy = $"{obj.OrderBy},{QueryableBuilder.GetPropertyName(predicate)} DESC";
             return obj;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        internal static string Ns(this string name)
+        {
+            if (QueryConfig.DialectServer == Dialect.SqlServer)
+            {
+                return $"[{name}]";
+            }
+
+            if (QueryConfig.DialectServer == Dialect.MySql)
+            {
+                return $"`{name}`";
+            }
+
+            return name;
         }
     }
 }
