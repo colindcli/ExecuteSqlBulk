@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Linq;
 using System.Linq.Expressions;
 
 namespace ExecuteSqlBulk
@@ -109,21 +110,26 @@ namespace ExecuteSqlBulk
         /// <returns></returns>
         internal static List<string> GetColumns<T, TColumn>(this Expression<Func<T, TColumn>> expression) where T : new()
         {
-            var columns = new List<string>();
-            if (expression.Body is MemberExpression body)
+            if (expression.Body is MemberExpression memberBody)
             {
-                var col = body.Member.Name;
-                columns.Add(col);
-            }
-            else
-            {
-                var t = new T();
-                var obj = expression.Compile().Invoke(t);
-                var cols = Common.GetColumns(obj);
-                columns.AddRange(cols);
+                return new List<string>() { memberBody.Member.Name };
             }
 
-            return columns;
+            if (expression.Body is UnaryExpression unaryBody)
+            {
+                var name = ((MemberExpression)unaryBody.Operand).Member.Name;
+                return new List<string>() { name };
+            }
+
+            if (expression.Body is ParameterExpression parameterBody)
+            {
+                return new List<string>() { parameterBody.Type.Name };
+            }
+
+            var t = new T();
+            var obj = expression.Compile().Invoke(t);
+            var cols = Common.GetColumns(obj);
+            return cols.ToList();
         }
 
         /// <summary>
